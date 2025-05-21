@@ -1,0 +1,4 @@
+directory_history.json
+**/__pycache__/
+venv/
+packenv/
