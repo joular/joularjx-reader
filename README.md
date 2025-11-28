@@ -6,7 +6,7 @@ JoularJX Reader is a GUI application to read and process the energy and data gen
 
 JoularJX GUI is a graphical interface that reads the generated folder and files, and displays power and energy consumption, along with analysis, of the various methods and execution branches.
 
-Install the requirements with ```pip install -r requirements.txt``, then run ```python gui.py```
+Install the requirements with ```pip install -r requirements.txt```, then run ```python gui.py```
 
 This version requires Python 3.10+, PyQT 6, pandas, pyqtgraph and numpy.
 
