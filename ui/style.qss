@@ -1,0 +1,310 @@
+/* Global stylesheet for JoularJX Reader (Light Theme) */
+
+/* General Styles */
+QWidget {
+    background-color: #FFFFFF;
+    color: #212529;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 10pt;
+}
+
+/* Sidebar Styles */
+QWidget#sidebar {
+    background-color: #F8F9FA;
+    border-right: 1px solid #DEE2E6;
+}
+
+QLabel#sidebar_title {
+    font-weight: bold;
+    font-size: 18px;
+    color: #212529;
+    padding: 20px;
+}
+
+QPushButton.nav-button {
+    background-color: transparent;
+    text-align: left;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #495057;
+    margin: 4px 12px;
+}
+
+QPushButton.nav-button:hover {
+    background-color: #E9ECEF;
+    color: #212529;
+}
+
+QPushButton.nav-button:checked {
+    background-color: #E7F1FF;
+    color: #0D6EFD;
+    font-weight: bold;
+}
+
+QPushButton.nav-button:disabled {
+    color: #ADB5BD;
+    background-color: transparent;
+}
+
+/* Dashboard Styles */
+QWidget#dashboard {
+    background-color: #FFFFFF;
+}
+
+QLabel#dashboard_title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #212529;
+}
+
+QLabel#dashboard_subtitle {
+    font-size: 16px;
+    color: #6C757D;
+}
+
+QFrame#action_card {
+    background-color: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 12px;
+}
+
+QFrame#action_card:hover {
+    border: 1px solid #0D6EFD;
+}
+
+
+/* Table Styles */
+QTableWidget {
+    background-color: #FFFFFF;
+    gridline-color: #F1F3F5;
+    border: 1px solid #DEE2E6;
+    border-radius: 8px;
+    selection-background-color: #E7F1FF;
+    selection-color: #0D6EFD;
+    outline: none;
+}
+
+QHeaderView::section {
+    background-color: #F8F9FA;
+    padding: 12px;
+    border: none;
+    border-bottom: 1px solid #DEE2E6;
+    font-weight: bold;
+    color: #495057;
+}
+
+/* Progress Bar in Tables */
+QProgressBar {
+    border: none;
+    background-color: #F1F3F5;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: bold;
+    color: transparent; /* Text inside bar is often messy in tables */
+}
+
+QProgressBar::chunk {
+    border-radius: 4px;
+}
+
+/* Form Elements */
+QLineEdit {
+    padding: 10px 14px;
+    border: 1px solid #DEE2E6;
+    border-radius: 6px;
+    background: #FFFFFF;
+    selection-background-color: #0D6EFD;
+}
+
+QLineEdit:focus {
+    border: 1px solid #0D6EFD;
+}
+
+QRadioButton {
+    spacing: 8px;
+    color: #495057;
+}
+
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+}
+
+/* ScrollBars */
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 6px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #E9ECEF;
+    min-height: 20px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #DEE2E6;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+    background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+
+/* Dashboard Section Links */
+QLabel.dashboard-link {
+    color: #6C757D;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QLabel.dashboard-link:hover {
+    color: #0D6EFD;
+    text-decoration: underline;
+}
+
+/* Action Card Sub-Frame */
+QFrame#select_folder_frame {
+    background-color: #F8F9FA;
+    border: 1px solid #E9ECEF;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+QLabel#select_path_label {
+    background-color: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: "Consolas", monospace;
+    font-size: 13px;
+    color: #495057;
+}
+
+/* Results Available Section */
+QLabel#results_title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #212529;
+}
+
+QLabel#results_count_badge {
+    background-color: #F1F3F5;
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* PID Search Bar */
+QLineEdit#pid_search_bar {
+    background-color: #F8F9FA;
+    border: 1px solid #E9ECEF;
+    border-radius: 8px;
+    padding: 10px 15px;
+}
+
+/* View Details Button in Table */
+QPushButton#view_details_btn {
+    background-color: transparent;
+    color: #0D6EFD;
+    border: none;
+    font-weight: 600;
+    text-align: right;
+    padding-right: 15px;
+}
+
+QPushButton#view_details_btn:hover {
+    color: #0B5ED7;
+    text-decoration: underline;
+}
+
+QPushButton#browse_btn {
+    background-color: #0D6EFD;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+QPushButton#browse_btn:hover {
+    background-color: #0B5ED7;
+}
+
+/* Header Add Button (Pill style) */
+QPushButton#header_add_btn {
+    background-color: #F8F9FA;
+    border: 1px solid #DEE2E6;
+    color: #495057;
+    border-radius: 18px;
+    padding: 0 15px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+QPushButton#header_add_btn:hover {
+    background-color: #E9ECEF;
+    border: 1px solid #0D6EFD;
+    color: #0D6EFD;
+}
+
+QPushButton#header_add_btn:pressed {
+    background-color: #DEE2E6;
+}
+
+/* Recent Cards */
+QWidget#recent_card {
+    background-color: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 8px;
+    min-width: 160px;
+    max-width: 220px;
+}
+
+QWidget#recent_card:hover {
+    border: 1px solid #0D6EFD;
+    background-color: #F8F9FA;
+}
+
+QPushButton#delete_btn {
+    background-color: #DC3545;
+    border: none;
+    border-radius: 9px;
+}
+
+QPushButton#delete_btn:hover {
+    background-color: #BB2D3B;
+}
+
+QLabel#recent_name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #212529;
+}
+
+QLabel#recent_date {
+    font-size: 11px;
+    color: #6C757D;
+}
+
+QLabel#recent_pid_badge {
+    background-color: #E7F1FF;
+    color: #0D6EFD;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
