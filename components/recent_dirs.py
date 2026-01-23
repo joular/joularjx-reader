@@ -6,6 +6,7 @@ from PyQt6.QtGui import QIcon
 from utils import ErrorHandler
 from datetime import datetime
 from utils.path_utils import PathUtils
+from utils.style_utils import get_icon_style
 
 class RecentDirectories:
     def __init__(self, dir_history, parent=None):
@@ -69,7 +70,7 @@ class RecentDirectories:
                 icon_layout.addWidget(badge)
             else:
                 folder_icon = QLabel("📁")
-                folder_icon.setStyleSheet("font-size: 20px;")
+                folder_icon.setStyleSheet(get_icon_style("20px"))
                 icon_layout.addWidget(folder_icon)
             
             icon_layout.addStretch()

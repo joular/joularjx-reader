@@ -308,3 +308,231 @@ QLabel#recent_pid_badge {
     font-weight: bold;
 }
 
+QLabel#page_title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #212529;
+    padding-bottom: 10px;
+}
+
+QWidget#metrics_panel {
+    background-color: transparent;
+}
+
+QWidget#metric_card_total {
+    background-color: #e8f5e9;
+    border: 2px solid #66bb6a;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+QWidget#metric_card_avg {
+    background-color: #fff3e0;
+    border: 2px solid #ffa726;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+QWidget#metric_card_max {
+    background-color: #ffebee;
+    border: 2px solid #ef5350;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+QWidget#metric_card_min {
+    background-color: #e3f2fd;
+    border: 2px solid #64b5f6;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+QLabel#metric_title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6C757D;
+    text-transform: uppercase;
+    background-color: transparent;
+}
+
+QLabel#metric_value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #212529;
+    background-color: transparent;
+}
+
+QLabel#title_hero {
+    font-size: 30px;
+    font-weight: 800;
+    color: #1A1D21;
+    background-color: transparent;
+}
+
+QLabel#description {
+    font-size: 15px;
+    color: #64748B;
+    background-color: transparent;
+}
+
+QLabel#section_title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1E293B;
+    background-color: transparent;
+}
+
+QLabel#help_text {
+    font-size: 14px;
+    color: #64748B;
+    background-color: transparent;
+}
+
+QLabel#icon_large {
+    font-size: 18px;
+    background-color: transparent;
+}
+
+QLabel#icon_medium {
+    font-size: 20px;
+    background-color: transparent;
+}
+
+QLabel#pid_label {
+    color: #757575;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QLabel#date_label {
+    color: #9E9E9E;
+    font-size: 10px;
+}
+
+QTreeWidget#hierarchy_tree {
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    background-color: white;
+    alternate-background-color: #FAFAFA;
+    selection-background-color: #E3F2FD;
+    selection-color: #1565C0;
+    outline: none;
+    font-size: 13px;
+}
+
+QTreeWidget#hierarchy_tree::item {
+    padding: 8px;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+QTreeWidget#hierarchy_tree::item:hover {
+    background-color: #F5F5F5;
+}
+
+QTreeWidget#hierarchy_tree::item:selected {
+    background-color: #E3F2FD;
+    color: #1565C0;
+}
+
+QRadioButton#filter_radio {
+    font-size: 13px;
+    color: #424242;
+}
+
+QLineEdit#search_input {
+    padding: 10px 15px;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    background-color: #F9F9F9;
+    font-size: 13px;
+    color: #424242;
+}
+
+QLineEdit#search_input:focus {
+    border: 1px solid #1976D2;
+    background-color: white;
+}
+
+QScrollArea#transparent_scroll {
+    border: none;
+    background-color: transparent;
+}
+
+QTableWidget#pid_results_table {
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    background-color: white;
+    alternate-background-color: #FAFAFA;
+    selection-background-color: #E3F2FD;
+    selection-color: #1565C0;
+}
+
+QTableWidget#pid_results_table::item {
+    padding: 12px;
+    border-bottom: 1px solid #F0F0F0;
+    color: #424242;
+}
+
+QTableWidget#pid_results_table::item:selected {
+    background-color: #E3F2FD;
+    color: #1565C0;
+    font-weight: 600;
+}
+
+QTableWidget#pid_results_table::item:focus {
+    border: none;
+    outline: none;
+}
+
+QTableWidget#pid_results_table QHeaderView::section {
+    background-color: white;
+    padding: 8px;
+    border: none;
+    border-bottom: 2px solid #EEEEEE;
+    font-weight: bold;
+    color: #616161;
+}
+
+QTreeWidget#hierarchy_tree {
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::item {
+    padding: 0px;
+    border: none;
+    margin: 2px 0px;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::item:selected {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::item:hover {
+    background-color: transparent;
+}
+
+QTreeWidget#hierarchy_tree::item:focus {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::branch:has-children:!has-siblings:closed,
+QTreeWidget#hierarchy_tree::branch:closed:has-children:has-siblings {
+    background: transparent;
+    border: none;
+    width: 0px;
+}
+
+QTreeWidget#hierarchy_tree::branch:open:has-children:!has-siblings,
+QTreeWidget#hierarchy_tree::branch:open:has-children:has-siblings {
+    background: transparent;
+    border: none;
+    width: 0px;
+}
+

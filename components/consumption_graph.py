@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel)
 from PyQt6.QtCore import Qt
 import pyqtgraph as pg
 import numpy as np
+from utils.style_utils import get_metric_label_style
 
 class ConsumptionGraphDialog(QDialog):
     def __init__(self, method, parent=None):
@@ -55,36 +56,18 @@ class ConsumptionGraphDialog(QDialog):
         
         # Total consumption
         total_consumption = QLabel(f"Total Consumption: {self.method.consumption:.4f} J")
-        total_consumption.setStyleSheet("""
-            font-size: 14px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-        """)
+        total_consumption.setStyleSheet(get_metric_label_style('dialog_value'))
         stats_layout.addWidget(total_consumption)
         
         # Percentage
         percentage = QLabel(f"Percentage: {self.method.percentage:.2f}%")
-        percentage.setStyleSheet("""
-            font-size: 14px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-        """)
+        percentage.setStyleSheet(get_metric_label_style('dialog_value'))
         stats_layout.addWidget(percentage)
         
         # Average consumption
         avg_consumption = np.mean(consumptions)
         average = QLabel(f"Average Consumption: {avg_consumption:.4f} J")
-        average.setStyleSheet("""
-            font-size: 14px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-        """)
+        average.setStyleSheet(get_metric_label_style('dialog_value'))
         stats_layout.addWidget(average)
         
         # Add widgets to layout

@@ -1,9 +1,10 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                             QPushButton, QFrame, QScrollArea, QLineEdit, QTableWidget, 
-                            QTableWidgetItem, QHeaderView, QAbstractItemView)
+                            QTableWidgetItem, QHeaderView, QAbstractItemView, QSizePolicy)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
 from utils.path_utils import PathUtils
+from utils.style_utils import get_title_style, get_description_style, get_separator_style, get_help_text_style, get_icon_style
 
 class DashboardWidget(QWidget):
     """ Enhanced Dashboard matching Figma mockup with conditional results. """
@@ -62,12 +63,7 @@ class DashboardWidget(QWidget):
         self.title_label = QLabel("JoularJX Dashboard")
         self.title_label.setObjectName("dashboard_title")
         
-        self.subtitle_label = QLabel("Prêt pour une nouvelle analyse")
-        self.subtitle_label.setObjectName("dashboard_subtitle")
-        
-        text_layout.addWidget(self.title_label)
-        text_layout.addWidget(self.subtitle_label)
-        
+        text_layout.addWidget(self.title_label)        
         header_layout.addLayout(text_layout)
         header_layout.addStretch()
         
@@ -102,12 +98,12 @@ class DashboardWidget(QWidget):
         icon_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/logo.png')).pixmap(90, 90))
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        title = QLabel("Nouvelle Analyse")
-        title.setStyleSheet("font-size: 30px; font-weight: 800; color: #1A1D21;")
+        title = QLabel("New Analysis")
+        title.setObjectName("title_hero")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        desc = QLabel("Sélectionnez un dossier de résultats JoularJX pour commencer l'analyse")
-        desc.setStyleSheet("font-size: 15px; color: #64748B;")
+        desc = QLabel("Select a JoularJX result folder to start analysis")
+        desc.setObjectName("description")
         desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         info_layout.addWidget(icon_label)
@@ -119,14 +115,23 @@ class DashboardWidget(QWidget):
         links_layout.setSpacing(20)
         links_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        for text in ["Documentation", "GitHub Repository", "Official Website"]:
-            link = QLabel(text)
+        links_data = [
+            ("Documentation", "https://github.com/joular/joularjx"),
+            ("GitHub Repository", "https://github.com/joular/joularjx"), 
+            ("Official Website", "https://www.joular.com")
+        ]
+        
+        for text, url in links_data:
+            link = QLabel(f'<a href="{url}" style="color: #6C757D; text-decoration: none;">{text}</a>')
             link.setProperty("class", "dashboard-link")
             link.setCursor(Qt.CursorShape.PointingHandCursor)
+            link.setOpenExternalLinks(True)
+            link.setTextFormat(Qt.TextFormat.RichText)
+            
             links_layout.addWidget(link)
             if text != "Official Website":
                 sep = QLabel("|")
-                sep.setStyleSheet("color: #E2E8F0;")
+                sep.setStyleSheet(get_separator_style())
                 links_layout.addWidget(sep)
         
         # Selection Frame (The box matching Figma)
@@ -139,15 +144,15 @@ class DashboardWidget(QWidget):
         # Folder Header
         select_header = QHBoxLayout()
         folder_icon = QLabel("📁")
-        folder_icon.setStyleSheet("font-size: 18px;")
-        select_title = QLabel("Dossier de résultats")
-        select_title.setStyleSheet("font-weight: 700; font-size: 15px; color: #1E293B;")
+        folder_icon.setObjectName("icon_large")
+        select_title = QLabel("Result Folder")
+        select_title.setObjectName("section_title")
         select_header.addWidget(folder_icon)
         select_header.addWidget(select_title)
         select_header.addStretch()
         
-        select_help = QLabel("Sélectionnez le dossier contenant les mesures JoularJX")
-        select_help.setStyleSheet("font-size: 14px; color: #64748B;")
+        select_help = QLabel("Select the folder containing JoularJX measurements")
+        select_help.setObjectName("help_text")
         
         self.path_display = QLabel("/path/results")
         self.path_display.setObjectName("select_path_label")
@@ -156,7 +161,7 @@ class DashboardWidget(QWidget):
         # THE BUTTON (Prominent and Centered)
         btn_container = QHBoxLayout()
         btn_container.addStretch()
-        self.browse_btn = QPushButton("   Parcourir les dossiers")
+        self.browse_btn = QPushButton("   Browse folders")
         self.browse_btn.setObjectName("browse_btn")
         self.browse_btn.setFixedWidth(280)
         self.browse_btn.setFixedHeight(50)
@@ -189,7 +194,7 @@ class DashboardWidget(QWidget):
         
         # Title Row
         title_row = QHBoxLayout()
-        title_label = QLabel("Résultats disponibles")
+        title_label = QLabel("Available Results")
         title_label.setObjectName("results_title")
         
         self.count_badge = QLabel("0 résultats")
@@ -203,25 +208,27 @@ class DashboardWidget(QWidget):
         # Search Bar
         self.search_bar = QLineEdit()
         self.search_bar.setObjectName("pid_search_bar")
-        self.search_bar.setPlaceholderText("Rechercher un PID...")
+        self.search_bar.setPlaceholderText("Search PID...")
         self.search_bar.textChanged.connect(self.filter_results)
         
         # Results Table
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(3)
-        self.results_table.setHorizontalHeaderLabels(["PID", "date", "Actions"])
+        self.results_table.setColumnCount(2)
+        self.results_table.setHorizontalHeaderLabels(["PID", "date"])
         self.results_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.results_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.results_table.setShowGrid(False)
         self.results_table.verticalHeader().setVisible(False)
+        self.results_table.setAlternatingRowColors(True)
+        self.results_table.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.results_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.results_table.setMinimumHeight(400)
+        self.results_table.cellClicked.connect(self.on_row_clicked)
+        self.results_table.setObjectName("pid_results_table")
         
         header = self.results_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
-        self.results_table.setColumnWidth(1, 250)
-        self.results_table.setColumnWidth(2, 200)
-        self.results_table.setFixedHeight(400) # Initial height
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         
         results_layout.addLayout(title_row)
         results_layout.addWidget(self.search_bar)
@@ -235,8 +242,8 @@ class DashboardWidget(QWidget):
         recent_layout_v.setContentsMargins(0, 40, 0, 0)
         recent_layout_v.setSpacing(15)
         
-        recent_header = QLabel("Dossiers Récents")
-        recent_header.setStyleSheet("font-size: 18px; font-weight: bold; color: #212529;")
+        recent_header = QLabel("Recent Folders")
+        recent_header.setObjectName("recent_section_title")
         recent_layout_v.addWidget(recent_header)
         
         self.recent_layout = QHBoxLayout()
@@ -262,30 +269,33 @@ class DashboardWidget(QWidget):
         """ Populate the results table. pids_info: list of (pid, date, full_path) """
         self.results_table.setRowCount(0)
         self.all_results = pids_info
-        self.count_badge.setText(f"{len(pids_info)} résultats")
+        self.count_badge.setText(f"{len(pids_info)} results")
         
         for row, info in enumerate(pids_info):
             self.add_result_row(row, info)
         
         # Adjust table height based on content or keep fixed
-        self.results_table.setFixedHeight(min(400, len(pids_info) * 60 + 50))
 
     def add_result_row(self, row, info):
         pid, date, full_path = info
         self.results_table.insertRow(row)
         
         pid_item = QTableWidgetItem(pid)
+        # Store full path in UserRole for easy access
+        pid_item.setData(Qt.ItemDataRole.UserRole, full_path)
         self.results_table.setItem(row, 0, pid_item)
         
         date_item = QTableWidgetItem(date)
+        date_item.setData(Qt.ItemDataRole.UserRole, full_path)
         self.results_table.setItem(row, 1, date_item)
-        
-        # Action Button
-        btn = QPushButton("Voir détails >")
-        btn.setObjectName("view_details_btn")
-        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.clicked.connect(lambda: self.pid_selected.emit(full_path))
-        self.results_table.setCellWidget(row, 2, btn)
+
+    def on_row_clicked(self, row, column):
+        """Handle row click to select PID."""
+        item = self.results_table.item(row, 0)
+        if item:
+            full_path = item.data(Qt.ItemDataRole.UserRole)
+            if full_path:
+                self.pid_selected.emit(full_path)
 
     def filter_results(self, text):
         for row in range(self.results_table.rowCount()):
@@ -293,7 +303,7 @@ class DashboardWidget(QWidget):
             self.results_table.setRowHidden(row, text.lower() not in pid.lower())
 
     def update_pid_label(self, pid):
-        self.subtitle_label.setText(f"PID : {pid}")
+        pass
     
     def set_selected_path(self, path):
         self.path_display.setText(path)

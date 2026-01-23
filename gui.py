@@ -12,12 +12,13 @@ from directory_history import DirectoryHistory
 
 from components import (
     MethodTable,
-    CallTreeTable,
+    CallTreeCardInterface,
     ConsumptionGraphDialog,
     CallTreeDetailsDialog,
     RecentDirectories,
     SidebarWidget,
-    DashboardWidget
+    DashboardWidget,
+    AnalysisPage
 )
 from utils import ErrorHandler
 from utils.path_utils import PathUtils
@@ -26,7 +27,7 @@ from utils.path_utils import PathUtils
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("JoularJX Reader")
+        self.setWindowTitle("JoularJX GUI")
         self.resize(1280, 800)
         self.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))
         
@@ -111,65 +112,25 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.calltrees_page)
 
     def create_methods_page(self):
-        page = QWidget()
-        layout = QVBoxLayout(page)
-        layout.setContentsMargins(20, 20, 20, 20)
-        
-        title = QLabel("Analyses des Méthodes")
-        title.setObjectName("page_title")
-        layout.addWidget(title)
-        
-        controls = QHBoxLayout()
-        self.methods_search = QLineEdit()
-        self.methods_search.setPlaceholderText("Rechercher une méthode...")
-        self.methods_search.textChanged.connect(lambda t: self.methods_table.filter_methods(t))
-        
-        self.methods_app_radio = QRadioButton("Application Only")
-        self.methods_app_radio.setChecked(True)
-        self.methods_all_radio = QRadioButton("All Methods")
-        self.methods_app_radio.toggled.connect(self.update_methods_display)
-        self.methods_all_radio.toggled.connect(self.update_methods_display)
-        
-        controls.addWidget(self.methods_search)
-        controls.addSpacing(20)
-        controls.addWidget(self.methods_app_radio)
-        controls.addWidget(self.methods_all_radio)
-        layout.addLayout(controls)
-        
-        self.methods_table = MethodTable(self)
-        self.methods_table.itemSelectionChanged.connect(self.on_method_selected)
-        layout.addWidget(self.methods_table)
-        return page
+        """Create the analysis page with interactive graph."""
+        self.analysis_page = AnalysisPage()
+        return self.analysis_page
 
     def create_calltrees_page(self):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        title = QLabel("Arbres d'Appels")
+        title = QLabel("Call Trees Analysis")
         title.setObjectName("page_title")
         layout.addWidget(title)
         
-        controls = QHBoxLayout()
-        self.calltrees_search = QLineEdit()
-        self.calltrees_search.setPlaceholderText("Rechercher un arbre d'appel...")
-        self.calltrees_search.textChanged.connect(lambda t: self.calltrees_table.filter_calltrees(t))
+        # Card interface
+        self.calltree_cards = CallTreeCardInterface(self)
+        self.calltree_cards.calltree_selected.connect(self.on_calltree_selected_hierarchy)
+        self.calltree_cards.method_selected.connect(self.on_method_selected_from_hierarchy)
+        layout.addWidget(self.calltree_cards)
         
-        self.calltrees_app_radio = QRadioButton("Application Only")
-        self.calltrees_app_radio.setChecked(True)
-        self.calltrees_all_radio = QRadioButton("All Calltrees")
-        self.calltrees_app_radio.toggled.connect(self.update_calltrees_display)
-        self.calltrees_all_radio.toggled.connect(self.update_calltrees_display)
-        
-        controls.addWidget(self.calltrees_search)
-        controls.addSpacing(20)
-        controls.addWidget(self.calltrees_app_radio)
-        controls.addWidget(self.calltrees_all_radio)
-        layout.addLayout(controls)
-        
-        self.calltrees_table = CallTreeTable(self)
-        self.calltrees_table.itemSelectionChanged.connect(self.on_calltree_selected)
-        layout.addWidget(self.calltrees_table)
         return page
 
     def on_nav_clicked(self, btn):
@@ -217,9 +178,27 @@ class MainWindow(QMainWindow):
             ErrorHandler.show_error(self, "Error", "Failed to load directory", traceback.format_exc())
 
     def get_directory_date(self, path: str) -> str:
+        """Get date from folder name timestamp (preferred) or modification time."""
         try:
             import time
             from datetime import datetime
+            
+            folder_name = os.path.basename(path)
+            parts = folder_name.split('-')
+            
+            if len(parts) > 1:
+                try:
+                    timestamp_str = parts[1]
+                    timestamp = float(timestamp_str)
+                    
+                    if timestamp > 1000000000000:
+                        timestamp = timestamp / 1000.0
+                        
+                    return datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M:%S")
+                except (ValueError, IndexError):
+                    pass # Fallback to mtime
+            
+            # Fallback to modification time
             mtime = os.path.getmtime(path)
             return datetime.fromtimestamp(mtime).strftime("%d/%m/%Y %H:%M:%S")
         except:
@@ -234,39 +213,44 @@ class MainWindow(QMainWindow):
             self.current_path = pid_path
             self.reader = JoularReader(pid_path)
             
-            self.dashboard.update_pid_label(pid)
+            self.sidebar.update_pid(pid)
+            
             self.update_methods_display()
             self.update_calltrees_display()
             self.sidebar.enable_navigation()
             
-            QMessageBox.information(self, "Succès", f"Données chargées pour le PID: {pid}")
+            self.update_calltrees_display()
+            self.sidebar.enable_navigation()
+            
+            # Auto-navigate to Analysis page
+            self.stack.setCurrentIndex(1)
+            # Update sidebar selection
+            self.sidebar.btn_analyses.setChecked(True)
+            self.sidebar.btn_home.setChecked(False)
         except Exception as e:
             ErrorHandler.show_error(self, "Error", "Failed to load PID data", traceback.format_exc())
 
 
     def update_methods_display(self):
-        if not self.reader: return
-        data = self.reader.all_methods if self.methods_all_radio.isChecked() else self.reader.app_methods
-        methods = []
-        for m_list in data.values(): methods.extend(m_list)
-        self.methods_table.update_methods(methods)
+        """Update the analysis page with reader data."""
+        if not self.reader:
+            return
+        self.analysis_page.set_reader(self.reader)
 
     def update_calltrees_display(self):
         if not self.reader: return
-        data = self.reader.all_call_trees if self.calltrees_all_radio.isChecked() else self.reader.app_call_trees
-        self.calltrees_table.update_calltrees(list(data.values()))
+        self.calltree_cards.update_data(self.reader.app_call_trees, self.reader.all_call_trees)
 
-    def on_method_selected(self):
-        method = self.methods_table.get_selected_method()
-        if method:
-            ConsumptionGraphDialog(method, self).exec()
-            self.methods_table.clearSelection()
 
-    def on_calltree_selected(self):
-        calltree = self.calltrees_table.get_selected_calltree()
+    def on_calltree_selected_hierarchy(self, calltree):
         if calltree:
             CallTreeDetailsDialog(calltree, self.current_pid, self).exec()
-            self.calltrees_table.clearSelection()
+    
+    def on_method_selected_from_hierarchy(self, method):
+        """Handle method selection from hierarchy widget."""
+        if method:
+            ConsumptionGraphDialog(method, self).exec()
+                     
     def is_pid_directory(self, directory: str) -> bool:
         try:
             app_dir = os.path.join(directory, "app")
