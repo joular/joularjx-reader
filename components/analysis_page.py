@@ -1,12 +1,26 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                            QLineEdit, QRadioButton, QPushButton)
+                            QLineEdit, QRadioButton, QPushButton, QFrame)
 from PyQt6.QtCore import Qt, pyqtSignal
 import numpy as np
 
 from .interactive_graph import InteractiveGraphWidget
 from .method_table import MethodTable
 from .consumption_graph import ConsumptionGraphDialog
-from utils.style_utils import METHOD_COLORS
+
+# Method color palette (previously in style_utils)
+METHOD_COLORS = [
+    (255, 99, 71),      # Tomato
+    (60, 179, 113),     # MediumSeaGreen
+    (255, 165, 0),      # Orange
+    (106, 90, 205),     # SlateBlue
+    (255, 20, 147),     # DeepPink
+    (0, 191, 255),      # DeepSkyBlue
+    (255, 215, 0),      # Gold
+    (138, 43, 226),     # BlueViolet
+    (50, 205, 50),      # LimeGreen
+    (255, 105, 180),    # HotPink
+]
+
 
 
 class MetricsPanel(QWidget):
@@ -19,50 +33,64 @@ class MetricsPanel(QWidget):
     def setup_ui(self):
         """Setup the metrics UI"""
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 10, 0, 10)
-        layout.setSpacing(20)
+        layout.setContentsMargins(0, 5, 0, 5)
+        layout.setSpacing(0)
         
-        # Create metric cards
-        self.total_label = self._create_metric_card("Total Consumption", "0 J", "total")
-        self.avg_label = self._create_metric_card("Average Consumption", "0 J", "avg")
-        self.max_label = self._create_metric_card("Peak Maximum", "0 J", "max")
-        self.min_label = self._create_metric_card("Minimum", "0 J", "min")
+        self.container = QWidget()
+        self.container.setObjectName("metrics_unified_container")
         
-        layout.addWidget(self.total_label)
-        layout.addWidget(self.avg_label)
-        layout.addWidget(self.max_label)
-        layout.addWidget(self.min_label)
-        layout.addStretch()
+        self.container_layout = QHBoxLayout(self.container)
+        self.container_layout.setContentsMargins(15, 8, 15, 8)
+        self.container_layout.setSpacing(20)
         
+        self.total_label = self._add_metric("Total", "0 J", "total")
+        self._add_separator()
+        self.avg_label = self._add_metric("Average", "0 J", "avg")
+        self._add_separator()
+        self.max_label = self._add_metric("Max", "0 J", "max")
+        self._add_separator()
+        self.min_label = self._add_metric("Min", "0 J", "min")
         
-    def _create_metric_card(self, title, value, card_type):
-        """Create a styled metric card using QSS styles"""
-        container = QWidget()
-        container.setObjectName(f"metric_card_{card_type}")
+        layout.addWidget(self.container)
         
-        layout = QVBoxLayout(container)
-        layout.setContentsMargins(15, 12, 15, 12)
-        layout.setSpacing(8)
+    def _add_metric(self, title, value, object_name_suffix):
+        """Add a metric items to the container"""
+        wrapper = QWidget()
+        wrapper.setObjectName("metric_wrapper")
+        v_layout = QVBoxLayout(wrapper)
+        v_layout.setContentsMargins(0, 0, 0, 0)
+        v_layout.setSpacing(2)
+        v_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        title_label = QLabel(title)
-        title_label.setObjectName("metric_title")
+        title_label = QLabel(title.upper())
+        title_label.setObjectName("metric_title_unified")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         value_label = QLabel(value)
-        value_label.setObjectName("metric_value")
+        value_label.setObjectName(f"metric_value_{object_name_suffix}") 
+        value_label.setProperty("class", "metric_value_unified") 
+        value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        layout.addWidget(title_label)
-        layout.addWidget(value_label)
+        v_layout.addWidget(title_label)
+        v_layout.addWidget(value_label)
         
-        container.value_label = value_label
-        
-        return container
-        
+        self.container_layout.addWidget(wrapper, 1)
+        return value_label
+
+    def _add_separator(self):
+        """Add a vertical separator line"""
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.VLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        line.setObjectName("metric_separator")
+        self.container_layout.addWidget(line)
+
     def update_metrics(self, total, avg, max_val, min_val):
         """Update all metric values."""
-        self.total_label.value_label.setText(f"{total:.2f} J")
-        self.avg_label.value_label.setText(f"{avg:.2f} J")
-        self.max_label.value_label.setText(f"{max_val:.2f} J")
-        self.min_label.value_label.setText(f"{min_val:.2f} J")
+        self.total_label.setText(f"{total:.2f} J")
+        self.avg_label.setText(f"{avg:.2f} J")
+        self.max_label.setText(f"{max_val:.2f} J")
+        self.min_label.setText(f"{min_val:.2f} J")
 
 
 class AnalysisPage(QWidget):
@@ -82,15 +110,20 @@ class AnalysisPage(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
         
         # Title
         title = QLabel("Method Analysis")
         title.setObjectName("page_title")
-        layout.addWidget(title)
+        header_layout.addWidget(title)
+        
+        header_layout.addSpacing(40)
         
         # Metrics panel
         self.metrics_panel = MetricsPanel()
-        layout.addWidget(self.metrics_panel)
+        header_layout.addWidget(self.metrics_panel, stretch=1)
+        layout.addLayout(header_layout)
         
         # Interactive graph
         self.graph = InteractiveGraphWidget()

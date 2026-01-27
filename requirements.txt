@@ -1,4 +1,6 @@
 PyQt6==6.7.0
+PyQt6-Fluent-Widgets==1.11.0
+pyqt-frameless-window==0.0.85
 pyqtgraph==0.13.7
 numpy==2.2.5
 pandas==2.2.3

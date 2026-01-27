@@ -319,46 +319,56 @@ QWidget#metrics_panel {
     background-color: transparent;
 }
 
-QWidget#metric_card_total {
-    background-color: #e8f5e9;
-    border: 2px solid #66bb6a;
+QWidget#metrics_unified_container {
+    background-color: #F8F9FA;
+    border: 1px solid #DEE2E6;
     border-radius: 8px;
-    padding: 12px;
 }
 
-QWidget#metric_card_avg {
-    background-color: #fff3e0;
-    border: 2px solid #ffa726;
-    border-radius: 8px;
-    padding: 12px;
-}
-
-QWidget#metric_card_max {
-    background-color: #ffebee;
-    border: 2px solid #ef5350;
-    border-radius: 8px;
-    padding: 12px;
-}
-
-QWidget#metric_card_min {
-    background-color: #e3f2fd;
-    border: 2px solid #64b5f6;
-    border-radius: 8px;
-    padding: 12px;
-}
-
-QLabel#metric_title {
-    font-size: 12px;
-    font-weight: 600;
-    color: #6C757D;
-    text-transform: uppercase;
+QWidget#metric_wrapper {
     background-color: transparent;
 }
 
-QLabel#metric_value {
-    font-size: 24px;
+QFrame#metric_separator {
+    color: #DEE2E6;
+    background-color: #DEE2E6;
+    border: none;
+    width: 1px;
+}
+
+QLabel#metric_title_unified {
+    font-size: 10px;
+    font-weight: 700;
+    color: #ADB5BD;
+    letter-spacing: 0.5px;
+    background-color: transparent;
+}
+
+QLabel#metric_value_total {
+    font-size: 16px;
     font-weight: bold;
-    color: #212529;
+    color: #198754;
+    background-color: transparent;
+}
+
+QLabel#metric_value_avg {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fd7e14;
+    background-color: transparent;
+}
+
+QLabel#metric_value_max {
+    font-size: 16px;
+    font-weight: bold;
+    color: #dc3545;
+    background-color: transparent;
+}
+
+QLabel#metric_value_min {
+    font-size: 16px;
+    font-weight: bold;
+    color: #0dcaf0;
     background-color: transparent;
 }
 

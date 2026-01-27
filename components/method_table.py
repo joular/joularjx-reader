@@ -1,13 +1,13 @@
 from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QHeaderView, 
-                            QProgressBar, QWidget, QHBoxLayout, QAbstractItemView, QCheckBox)
+                            QProgressBar, QWidget, QHBoxLayout, QAbstractItemView, QRadioButton)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 import pyqtgraph as pg
 import numpy as np
-from utils.style_utils import (get_progress_color, get_table_style, get_header_style, 
-                              get_progress_bar_style, get_checkbox_style, get_cell_widget_style,
-                              get_color_indicator_style, get_total_color_indicator_style,
-                              get_progress_wrapper_style)
+from utils.style_utils import (get_progress_color, 
+                               get_progress_bar_style, get_cell_widget_style,
+                               get_color_indicator_style, get_total_color_indicator_style,
+                               get_progress_wrapper_style)
 
 from utils.style_constants import (
     COLOR_BG_SELECTION, COLOR_BG_LIGHT, COLOR_BG_WHITE, 
@@ -34,11 +34,10 @@ class MethodTable(QTableWidget):
         # Configure headers
         self._configure_headers()
         
-        # Set table style
-        self.setStyleSheet(get_table_style())
+
         
         # Set minimum column widths
-        self.horizontalHeader().setMinimumSectionSize(100)
+        self.horizontalHeader().setMinimumSectionSize(60)
         
         # Masquer la colonne d'index à gauche
         self.verticalHeader().setVisible(False)
@@ -58,36 +57,20 @@ class MethodTable(QTableWidget):
         if not self.checkbox_mode:
             return
             
-        selection_color = COLOR_BG_SELECTION
-        
         for row in range(self.rowCount()):
-            item = self.item(row, 2)
-            is_selected = item and item.isSelected()
-            
-            # Determine background color
-            if is_selected:
-                bg_color = selection_color
-            else:
-                # Normal striping logic
-                if self.checkbox_mode and row == 0:
-                     bg_color = COLOR_TOTAL_BG # Keep TOTAL blue
-                else:
-                    bg_color = COLOR_BG_LIGHT if row % 2 == 0 else COLOR_BG_WHITE
-
             # Checkbox widget (Column 0)
             checkbox_widget = self.cellWidget(row, 0)
             if checkbox_widget:
                 checkbox_widget.setStyleSheet(f"""
-                    background-color: {bg_color};
-                    border-bottom: 1px solid {COLOR_BORDER_CELL_BOTTOM};
-                    border-right: 1px solid {COLOR_BORDER_CELL_RIGHT};
+                    background-color: transparent;
+                    border: none;
                 """)
                 
             # Color widget (Column 1)
             color_widget = self.cellWidget(row, 1)
             if color_widget:
                 color_widget.setStyleSheet(f"""
-                    background-color: {bg_color};
+                    background-color: transparent;
                     border-bottom: 1px solid {COLOR_BORDER_CELL_BOTTOM};
                     border-right: 1px solid {COLOR_BORDER_CELL_RIGHT};
                 """)
@@ -103,8 +86,8 @@ class MethodTable(QTableWidget):
             header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)  # Average
             header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)  # Percentage
             
-            self.setColumnWidth(0, 60)   # Checkbox (Graph)
-            self.setColumnWidth(1, 40)   # Color
+            self.setColumnWidth(0, 30)   # Checkbox (Graph)
+            self.setColumnWidth(1, 25)   # Color
             self.setColumnWidth(3, 120)  # Consumption
             self.setColumnWidth(4, 120)  # Average
         else:
@@ -119,7 +102,6 @@ class MethodTable(QTableWidget):
             self.setColumnWidth(3, 100)
         
         header.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft)
-        header.setStyleSheet(get_header_style())
     
     def enable_checkbox_mode(self):
         """Enable checkbox mode for method visibility toggling."""
@@ -152,19 +134,26 @@ class MethodTable(QTableWidget):
             checkbox_layout.setContentsMargins(0, 0, 0, 0)
             checkbox_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
-            total_checkbox = QCheckBox()
+            total_checkbox = QRadioButton()
             total_checkbox.setProperty("method_name", "TOTAL")
+            total_checkbox.setAutoExclusive(False)
             # Block signals to avoid emission during initialization
             total_checkbox.blockSignals(True)
             total_checkbox.setChecked(True)  # Total is checked by default
             total_checkbox.blockSignals(False)
             # Now connect the signal
-            total_checkbox.stateChanged.connect(
-                lambda state: self.method_toggled.emit("TOTAL", state == Qt.CheckState.Checked.value)
+            total_checkbox.toggled.connect(
+                lambda state: self.method_toggled.emit("TOTAL", state)
             )
             checkbox_layout.addWidget(total_checkbox)
             checkbox_widget.setStyleSheet(get_cell_widget_style(bg_color))
             
+            # Add item for background color
+            total_bg_item = QTableWidgetItem()
+            total_bg_item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+            total_bg_item.setBackground(pg.mkColor(bg_color))
+            self.setItem(0, 0, total_bg_item)
+
             self.setCellWidget(0, 0, checkbox_widget)
             
             # Color indicator for TOTAL (blue)
@@ -177,6 +166,12 @@ class MethodTable(QTableWidget):
             color_label.setFixedSize(20, 20)
             color_label.setStyleSheet(get_total_color_indicator_style())
             color_layout.addWidget(color_label)
+            
+            # Add item for background color
+            total_color_bg_item = QTableWidgetItem()
+            total_color_bg_item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+            total_color_bg_item.setBackground(pg.mkColor(bg_color))
+            self.setItem(0, 1, total_color_bg_item)
             
             self.setCellWidget(0, 1, color_widget)
             
@@ -222,8 +217,7 @@ class MethodTable(QTableWidget):
             row = idx + row_offset
             self.insertRow(row)
             
-            # Set alternating row colors
-            bg_color = COLOR_BG_LIGHT if row % 2 == 0 else COLOR_BG_WHITE
+            self.setAlternatingRowColors(True)
 
             col_offset = 0
             
@@ -234,20 +228,24 @@ class MethodTable(QTableWidget):
                 checkbox_layout.setContentsMargins(0, 0, 0, 0)
                 checkbox_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 
-                checkbox = QCheckBox()
+                checkbox = QRadioButton()
                 checkbox.setProperty("method_name", method.name)
-                checkbox.stateChanged.connect(
-                    lambda state, name=method.name: self.method_toggled.emit(name, state == Qt.CheckState.Checked.value)
+                checkbox.setAutoExclusive(False)
+                checkbox.toggled.connect(
+                    lambda state, name=method.name: self.method_toggled.emit(name, state)
                 )
                 checkbox_layout.addWidget(checkbox)
-                checkbox_widget.setStyleSheet(get_cell_widget_style(bg_color))
+                
+                # Add item for background color
+                checkbox_item = QTableWidgetItem()
+                checkbox_item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+                self.setItem(row, col_offset, checkbox_item)
                 
                 self.setCellWidget(row, col_offset, checkbox_widget)
                 col_offset += 1
                 
                 # Color indicator column
                 color_widget = QWidget()
-                color_widget.setStyleSheet(get_cell_widget_style(bg_color))
                 color_layout = QHBoxLayout(color_widget)
                 color_layout.setContentsMargins(5, 5, 5, 5)
                 
@@ -257,6 +255,11 @@ class MethodTable(QTableWidget):
                     color_label.setFixedSize(20, 20)
                     color_label.setStyleSheet(get_color_indicator_style(r, g, b))
                     color_layout.addWidget(color_label)
+                
+                # Add item for background color
+                color_item = QTableWidgetItem()
+                color_item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+                self.setItem(row, col_offset, color_item)
                 
                 self.setCellWidget(row, col_offset, color_widget)
                 col_offset += 1
@@ -268,7 +271,7 @@ class MethodTable(QTableWidget):
             name_item = QTableWidgetItem(f"⚡ {name}" if not self.checkbox_mode else name)
             name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             name_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-            name_item.setBackground(pg.mkColor(bg_color))
+            # Removed manual background setting
             name_item.setFont(QFont("Arial", 12))
             name_item.setToolTip(method.name)
             self.setItem(row, col_offset, name_item)
@@ -279,7 +282,7 @@ class MethodTable(QTableWidget):
             consumption_item = QTableWidgetItem(consumption_text)
             consumption_item.setFlags(consumption_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             consumption_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            consumption_item.setBackground(pg.mkColor(bg_color))
+             # Removed manual background setting
             consumption_item.setFont(QFont("Arial", 12))
             self.setItem(row, col_offset, consumption_item)
             col_offset += 1
@@ -290,7 +293,7 @@ class MethodTable(QTableWidget):
             avg_item = QTableWidgetItem(avg_text)
             avg_item.setFlags(avg_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             avg_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            avg_item.setBackground(pg.mkColor(bg_color))
+             # Removed manual background setting
             avg_item.setFont(QFont("Arial", 12))
             self.setItem(row, col_offset, avg_item)
             col_offset += 1
@@ -301,7 +304,7 @@ class MethodTable(QTableWidget):
                 percentage_item = QTableWidgetItem(percentage_text)
                 percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                percentage_item.setBackground(pg.mkColor(bg_color))
+                 # Removed manual background setting
                 percentage_item.setFont(QFont("Arial", 12))
                 self.setItem(row, col_offset, percentage_item)
             else:
@@ -310,7 +313,7 @@ class MethodTable(QTableWidget):
                 percentage_item = QTableWidgetItem(percentage_text)
                 percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                percentage_item.setBackground(pg.mkColor(bg_color))
+                 # Removed manual background setting
                 percentage_item.setFont(QFont("Arial", 12))
                 self.setItem(row, col_offset, percentage_item)
                 col_offset += 1
@@ -331,7 +334,7 @@ class MethodTable(QTableWidget):
                 progress_layout.setContentsMargins(0, 0, 0, 0)
                 progress_layout.setSpacing(0)
                 progress_layout.addWidget(progress_bar)
-                progress_widget.setStyleSheet(get_progress_wrapper_style(bg_color))
+                progress_widget.setStyleSheet(get_progress_wrapper_style("transparent"))
                 
                 self.setCellWidget(row, col_offset, progress_widget)
             

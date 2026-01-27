@@ -40,53 +40,48 @@ class RecentDirectories:
             card = QWidget()
             card.setObjectName("recent_card")
             card.setCursor(Qt.CursorShape.PointingHandCursor)
+            layout = QHBoxLayout(card)
+            layout.setSpacing(10)
+            layout.setContentsMargins(15, 10, 15, 10)
 
-            layout = QVBoxLayout(card)
-            layout.setSpacing(5)
-            layout.setContentsMargins(10, 5, 10, 10)
-
-            # Top row with delete button
-            top_layout = QHBoxLayout()
-            top_layout.setContentsMargins(0, 0, 0, 0)
-            top_layout.addStretch()
+            # Icon / Badge Column
+            is_pid = self.is_pid_directory(directory["path"])
+            if is_pid:
+                badge = QLabel("PID")
+                badge.setObjectName("recent_pid_badge")
+                badge.setFixedSize(30, 20) 
+                badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                layout.addWidget(badge)
+            else:
+                folder_icon = QLabel("📁")
+                folder_icon.setStyleSheet(get_icon_style("20px"))
+                layout.addWidget(folder_icon)
+            
+            info_layout = QVBoxLayout()
+            info_layout.setSpacing(2)
+            
+            dir_name = os.path.basename(directory["path"])
+            name_label = QLabel(dir_name)
+            name_label.setObjectName("recent_name")
+            name_label.setWordWrap(False)
+            
+            date_label = QLabel(directory["date"])
+            date_label.setObjectName("recent_date")
+            
+            info_layout.addWidget(name_label)
+            info_layout.addWidget(date_label)
+            
+            layout.addLayout(info_layout)
             
             delete_btn = QPushButton()
             delete_btn.setObjectName("delete_btn")
-            delete_btn.setFixedSize(18, 18)
+            delete_btn.setFixedSize(20, 20)
             delete_btn.setIcon(QIcon(PathUtils.get_resource_path("ui/img/close_white.svg")))
             delete_btn.setIconSize(QSize(10, 10))
             delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             delete_btn.clicked.connect(lambda: self.confirm_remove_recent_directory(directory["path"]))
-            top_layout.addWidget(delete_btn)
-            layout.addLayout(top_layout)
-
-            # Icon / Badge Row
-            icon_layout = QHBoxLayout()
-            is_pid = self.is_pid_directory(directory["path"])
             
-            if is_pid:
-                badge = QLabel("PID")
-                badge.setObjectName("recent_pid_badge")
-                icon_layout.addWidget(badge)
-            else:
-                folder_icon = QLabel("📁")
-                folder_icon.setStyleSheet(get_icon_style("20px"))
-                icon_layout.addWidget(folder_icon)
-            
-            icon_layout.addStretch()
-            layout.addLayout(icon_layout)
-
-            # Directory name (use basename)
-            dir_name = os.path.basename(directory["path"])
-            name_label = QLabel(dir_name)
-            name_label.setObjectName("recent_name")
-            name_label.setWordWrap(True)
-            layout.addWidget(name_label)
-
-            # Date
-            date_label = QLabel(directory["date"])
-            date_label.setObjectName("recent_date")
-            layout.addWidget(date_label)
+            layout.addWidget(delete_btn)
 
             # Click Event
             card.mousePressEvent = lambda e: self.handle_directory_click(directory["path"])

@@ -1,0 +1,81 @@
+QWidget {
+    font-family: "Noto Sans", "Ubuntu", "Segoe UI", sans-serif;
+    font-size: 10pt;
+}
+
+/* Force Square Buttons everywhere */
+QPushButton, QPushButton#browse_btn, QPushButton#view_details_btn, QPushButton#header_add_btn {
+    border: 1px solid #CDC7C2;
+    border-radius: 2px !important;
+    background-color: #F6F5F4;
+    color: #2E3436;
+    padding: 6px 12px;
+}
+
+QPushButton:hover, QPushButton#browse_btn:hover, QPushButton#view_details_btn:hover {
+    background-color: #FFFFFF;
+    border-color: #B2B2B2;
+}
+
+QPushButton:checked {
+    background-color: #3584E4;
+    color: #FFFFFF;
+    border: 1px solid #1C71D8;
+}
+
+/* Override the blue browse button to be standard Linux gray until hovered */
+QPushButton#browse_btn {
+    background-color: #F6F5F4; 
+    color: #2E3436;
+}
+QPushButton#browse_btn:hover {
+    background-color: #3584E4; 
+    color: #FFFFFF;
+}
+
+/* Standard clean inputs */
+QLineEdit, QComboBox, QLineEdit#pid_search_bar {
+    border: 1px solid #CDC7C2;
+    border-radius: 2px;
+    padding: 6px;
+    selection-background-color: #3584E4;
+}
+
+QLineEdit:focus {
+    border: 1px solid #3584E4;
+}
+
+/* Table refinements */
+QHeaderView::section {
+    background-color: #DCDAD5 !important;
+    padding: 8px !important;
+    border: 1px solid #CDC7C2 !important;
+    border-right: 1px solid #9A9996 !important;
+    font-weight: bold !important;
+    color: #3D3846 !important; /* Dark grey text */
+}
+
+/* Linux Table Style */
+QTableWidget {
+    background-color: #FFFFFF !important;
+    alternate-background-color: #F6F5F4 !important;
+    gridline-color: #C0BFBC !important;
+    border: 2px solid #9A9996 !important;
+    selection-background-color: #3584E4 !important;
+    selection-color: #FFFFFF !important;
+    show-decoration-selected: 1;
+}
+
+QTableWidget::item {
+    border-right: 1px solid #C0BFBC !important;
+    border-bottom: 1px solid #C0BFBC !important;
+}
+
+QTableWidget::item:selected {
+    background-color: #3584E4 !important;
+    color: #FFFFFF !important;
+}
+
+QWidget#sidebar {
+    background-color: #E0E0E0; 
+}

@@ -1,33 +1,4 @@
-METHOD_COLORS = [
-    (255, 99, 71),      # Tomato
-    (60, 179, 113),     # MediumSeaGreen
-    (255, 165, 0),      # Orange
-    (106, 90, 205),     # SlateBlue
-    (255, 20, 147),     # DeepPink
-    (0, 191, 255),      # DeepSkyBlue
-    (255, 215, 0),      # Gold
-    (138, 43, 226),     # BlueViolet
-    (50, 205, 50),      # LimeGreen
-    (255, 105, 180),    # HotPink
-]
 
-
-TOTAL_COLOR = (33, 150, 243)  # Blue
-
-GRAPH_STYLE = {
-    'background': '#fafafa',
-    'grid_alpha': 0.2,
-    'axis_color': '#666',
-    'axis_width': 1,
-    'curve_width': 2,
-    'crosshair_color': '#666',
-    'crosshair_style': 'dash',
-    'tooltip_background': (255, 255, 255, 230),
-    'tooltip_border': '#ccc',
-    'font_size': '11pt',
-    'title_size': '16pt',
-    'title_color': '#1a1a1a',
-}
 
 def get_progress_color(percentage):
     """Get color based on percentage value."""
@@ -44,57 +15,9 @@ def get_progress_color(percentage):
     except Exception:
         return COLOR_TEXT_SECONDARY  # Gray as fallback
 
-def get_table_style():
-    """Get the common table style."""
-    return f"""
-        QTableWidget {{
-            selection-background-color: #e3f2fd;
-            selection-color: black;
-            border: 1px solid #c0c0c0;
-            alternate-background-color: #f5f5f5;
-        }}
-        QTableWidget::item {{
-            border-bottom: 1px solid #e0e0e0;
-            border-right: 1px solid #f0f0f0;
-        }}
-        QTableWidget::item:selected {{
-            background-color: #e3f2fd;
-            border-top: 2px solid #1976d2;
-            border-bottom: 2px solid #1976d2;
-        }}
-    """
 
-def get_checkbox_style():    
-    return f"""
-        QCheckBox::indicator {{
-            width: 14px;
-            height: 14px;
-            border: 1px solid #555555;
-            border-radius: 3px;
-            background-color: white;
-        }}
-        QCheckBox::indicator:checked {{
-            background-color: white;
-            border: 1px solid #555555;
-            image: url({tick_b64});
-        }}
-        QCheckBox::indicator:hover {{
-            border-color: black;
-            background-color: #f0f0f0;
-        }}
-    """
 
-def get_header_style():
-    """Get the common header style."""
-    return f"""
-        QHeaderView::section {{
-            background-color: white;
-            padding: 5px;
-            border: none;
-            border-bottom: 2px solid #f0f0f0;
-            font-weight: bold;
-        }}
-    """
+
 
 def get_progress_bar_style(bar_color):
     """Get the common progress bar style."""
@@ -307,7 +230,6 @@ def get_theme_button_style(is_dark_mode):
                 background-color: #EEEEEE;
             }
         """
-
 def get_method_box_style(is_last_child):
     from .style_constants import COLOR_ACCENT_GREEN, COLOR_ACCENT_PURPLE, COLOR_BG_WHITE, COLOR_ACCENT_BLACK
     bg_color = COLOR_ACCENT_GREEN if is_last_child else COLOR_ACCENT_PURPLE

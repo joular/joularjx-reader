@@ -25,11 +25,8 @@ class SidebarWidget(QWidget):
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(20, 20, 20, 20)
         logo_label = QLabel()
-        logo_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/logo.png')).pixmap(32, 32))
-        title_label = QLabel("JoularJX GUI")
-        title_label.setObjectName("sidebar_title")
+        logo_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/joularjx.png')).pixmap(200, 120))
         header_layout.addWidget(logo_label)
-        header_layout.addWidget(title_label)
         header_layout.addStretch()
         layout.addLayout(header_layout)
         

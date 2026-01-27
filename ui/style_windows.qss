@@ -1,0 +1,106 @@
+/* Windows (Fluent-like) Specific Styles */
+
+QWidget {
+    font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+QLineEdit, QComboBox, QPlainTextEdit {
+    border-radius: 4px;
+    border: 1px solid #E5E5E5;
+    background-color: #FFFFFF;
+}
+
+QLineEdit:hover, QComboBox:hover {
+    background-color: #FDFDFD;
+    border: 1px solid #d0d0d0;
+}
+
+QLineEdit:focus {
+    border-bottom: 2px solid #0067C0;
+    background-color: #FFFFFF;
+}
+
+QPushButton {
+    border-radius: 4px;
+    background-color: #FFFFFF;
+    border: 1px solid #D1D1D1;
+    padding: 6px 16px;
+}
+
+QPushButton:hover {
+    background-color: #F6F6F6;
+    border: 1px solid #C0C0C0;
+}
+
+QPushButton:pressed {
+    background-color: #EDEDED;
+    border: 1px solid #B0B0B0;
+    color: #505050;
+}
+
+QPushButton#browse_btn, QPushButton#view_details_btn {
+    border-radius: 4px;
+}
+
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 12px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #898989;
+    min-height: 20px;
+    border-radius: 6px;
+    margin: 2px;
+    width: 8px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #606060;
+}
+
+QTreeWidget::item {
+    border-radius: 3px;
+    padding: 4px;
+}
+
+QTreeWidget::item:selected {
+    background-color: #E0EEF9;
+    color: #000000;
+    border-left: 3px solid #0067C0;
+}
+
+QTableWidget {
+    background-color: #FAFAFA !important;
+    alternate-background-color: #FAFAFA !important;
+    gridline-color: #E1E1E1 !important;
+    border: 1px solid #D4D4D4 !important;
+    border-radius: 3px !important;
+    selection-background-color: #F3F9FF !important;
+    selection-color: #000000 !important;
+}
+
+QHeaderView::section {
+    background-color: #F3F3F3 !important;
+    border: none !important;
+    border-bottom: 2px solid #E1E1E1 !important;
+    border-right: 1px solid #E8E8E8 !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    padding: 8px !important;
+    color: #323232 !important;
+}
+
+QTableWidget::item {
+    border-bottom: 1px solid #F0F0F0 !important;
+    padding: 4px !important;
+}
+
+QTableWidget::item:selected {
+    background-color: #E3F2FD !important;
+    color: #000000 !important;
+    border: none !important;
+}

@@ -1,7 +1,25 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 import pyqtgraph as pg
 import numpy as np
-from utils.style_utils import GRAPH_STYLE, TOTAL_COLOR
+
+
+# Graph styling constants (previously in style_utils)
+GRAPH_STYLE = {
+    'background': '#fafafa',
+    'grid_alpha': 0.2,
+    'axis_color': '#666',
+    'axis_width': 1,
+    'curve_width': 2,
+    'crosshair_color': '#666',
+    'crosshair_style': 'dash',
+    'tooltip_background': (255, 255, 255, 230),
+    'tooltip_border': '#ccc',
+    'font_size': '11pt',
+    'title_size': '16pt',
+    'title_color': '#1a1a1a',
+}
+TOTAL_COLOR = (33, 150, 243)  # Blue
+
 
 
 class InteractiveGraphWidget(QWidget):

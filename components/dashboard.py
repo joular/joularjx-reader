@@ -19,8 +19,8 @@ class DashboardWidget(QWidget):
 
     def setup_ui(self):
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(50, 40, 50, 40)
-        self.main_layout.setSpacing(20)
+        self.main_layout.setContentsMargins(30, 20, 30, 20)
+        self.main_layout.setSpacing(15)
         
         # Header Section
         self.setup_header()
@@ -29,24 +29,37 @@ class DashboardWidget(QWidget):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setObjectName("dashboard_scroll")
         
         self.content_container = QWidget()
         self.content_container.setObjectName("content_container")
-        self.content_layout = QVBoxLayout(self.content_container)
+        self.content_layout = QHBoxLayout(self.content_container)
         self.content_layout.setContentsMargins(0, 0, 0, 0)
-        self.content_layout.setSpacing(30)
+        self.content_layout.setSpacing(20)
         scroll.setWidget(self.content_container)
         self.main_layout.addWidget(scroll)
         
-        # Action Card (New Analyse)
+        # Left Column
+        self.left_column = QWidget()
+        self.left_layout = QVBoxLayout(self.left_column)
+        self.left_layout.setContentsMargins(0, 0, 0, 0)
         self.setup_action_card()
+        self.content_layout.addWidget(self.left_column, stretch=5)
+        
+        # Right Column
+        self.right_column = QWidget()
+        self.right_layout = QVBoxLayout(self.right_column)
+        self.right_layout.setContentsMargins(0, 0, 0, 0)
+        self.right_layout.setSpacing(15)
         
         # Available Results Section (Hidden by default)
         self.setup_results_section()
         
         # Recent Section (Fallback/Initial)
         self.setup_recent_section()
+        
+        self.content_layout.addWidget(self.right_column, stretch=4)
 
 
     def setup_header(self):
@@ -73,29 +86,23 @@ class DashboardWidget(QWidget):
 
 
     def setup_action_card(self):
-        # Centering Layout
-        outer_container = QVBoxLayout()
-        outer_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        card_center_h = QHBoxLayout()
-        card_center_h.addStretch()
-        
+        # Action Card Container
         self.action_card = QFrame()
         self.action_card.setObjectName("action_card")
-        self.action_card.setFixedWidth(720)
+        self.action_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         
         card_layout = QVBoxLayout(self.action_card)
-        card_layout.setContentsMargins(40, 40, 40, 40)
-        card_layout.setSpacing(30)
+        card_layout.setContentsMargins(20, 20, 20, 20) # Reduced padding
+        card_layout.setSpacing(20)
         card_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Icon & Title Area
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(10)
+        info_layout.setSpacing(8)
         info_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         icon_label = QLabel()
-        icon_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/logo.png')).pixmap(90, 90))
+        icon_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/joularjx.png')).pixmap(80, 80)) # Slightly smaller icon
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         title = QLabel("New Analysis")
@@ -105,6 +112,7 @@ class DashboardWidget(QWidget):
         desc = QLabel("Select a JoularJX result folder to start analysis")
         desc.setObjectName("description")
         desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        desc.setWordWrap(False)
         
         info_layout.addWidget(icon_label)
         info_layout.addWidget(title)
@@ -112,7 +120,7 @@ class DashboardWidget(QWidget):
         
         # Links Row
         links_layout = QHBoxLayout()
-        links_layout.setSpacing(20)
+        links_layout.setSpacing(15)
         links_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         links_data = [
@@ -138,7 +146,7 @@ class DashboardWidget(QWidget):
         self.select_frame = QFrame()
         self.select_frame.setObjectName("select_folder_frame")
         select_layout = QVBoxLayout(self.select_frame)
-        select_layout.setContentsMargins(25, 25, 25, 25)
+        select_layout.setContentsMargins(15, 15, 15, 15)
         select_layout.setSpacing(15)
         
         # Folder Header
@@ -179,17 +187,14 @@ class DashboardWidget(QWidget):
         card_layout.addLayout(links_layout)
         card_layout.addWidget(self.select_frame)
         
-        card_center_h.addWidget(self.action_card)
-        card_center_h.addStretch()
+        self.left_layout.addWidget(self.action_card)
         
-        outer_container.addLayout(card_center_h)
-        self.content_layout.addLayout(outer_container)
-
     def setup_results_section(self):
         self.results_widget = QWidget()
         self.results_widget.setVisible(False)
+        self.results_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         results_layout = QVBoxLayout(self.results_widget)
-        results_layout.setContentsMargins(0, 40, 0, 0)
+        results_layout.setContentsMargins(0, 0, 0, 0)
         results_layout.setSpacing(20)
         
         # Title Row
@@ -222,7 +227,6 @@ class DashboardWidget(QWidget):
         self.results_table.setAlternatingRowColors(True)
         self.results_table.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.results_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.results_table.setMinimumHeight(400)
         self.results_table.cellClicked.connect(self.on_row_clicked)
         self.results_table.setObjectName("pid_results_table")
         
@@ -234,32 +238,29 @@ class DashboardWidget(QWidget):
         results_layout.addWidget(self.search_bar)
         results_layout.addWidget(self.results_table)
         
-        self.content_layout.addWidget(self.results_widget)
-
+        self.right_layout.addWidget(self.results_widget)
+        
     def setup_recent_section(self):
         self.recent_widget = QWidget()
+        self.recent_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         recent_layout_v = QVBoxLayout(self.recent_widget)
-        recent_layout_v.setContentsMargins(0, 40, 0, 0)
+        recent_layout_v.setContentsMargins(0, 0, 0, 0)
         recent_layout_v.setSpacing(15)
         
         recent_header = QLabel("Recent Folders")
         recent_header.setObjectName("recent_section_title")
         recent_layout_v.addWidget(recent_header)
         
-        self.recent_layout = QHBoxLayout()
-        self.recent_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.recent_container = QWidget()
+        self.recent_layout = QVBoxLayout(self.recent_container)
+        self.recent_layout.setContentsMargins(0, 0, 0, 0)
+        self.recent_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.recent_layout.setSpacing(10)
+
+        recent_layout_v.addWidget(self.recent_container)
+        recent_layout_v.addStretch()
         
-        recent_container = QWidget()
-        recent_container.setLayout(self.recent_layout)
-        
-        self.recent_scroll = QScrollArea()
-        self.recent_scroll.setWidgetResizable(True)
-        self.recent_scroll.setFixedHeight(180)
-        self.recent_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self.recent_scroll.setWidget(recent_container)
-        
-        recent_layout_v.addWidget(self.recent_scroll)
-        self.content_layout.addWidget(self.recent_widget)
+        self.right_layout.addWidget(self.recent_widget)
 
     def set_results_visible(self, visible: bool):
         self.results_widget.setVisible(visible)

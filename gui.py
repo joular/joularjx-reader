@@ -3,9 +3,9 @@ import os
 import traceback
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QStackedWidget, QLineEdit, QRadioButton, 
-                            QLabel, QMessageBox, QFileDialog)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QFont
+                            QLabel, QMessageBox, QFileDialog, QPushButton)
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtGui import QIcon, QFont, QAction
 
 from reader import JoularReader
 from directory_history import DirectoryHistory
@@ -22,13 +22,83 @@ from components import (
 )
 from utils import ErrorHandler
 from utils.path_utils import PathUtils
+from ui.window_factory import get_base_window_class
 
 
-class MainWindow(QMainWindow):
+# Dynamically create MainWindow class with OS-specific base
+BaseWindowClass = get_base_window_class()
+
+class PidDisplayWidget(QWidget):
+    """ Widget that adapts between detailed (expanded) and compact (collapsed) views. """
+    clicked = pyqtSignal()
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.isSelectable = False # Important for Fluent safety, though we bypass API
+        
+        # Main layout for the widget
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+        self.setStyleSheet("background-color: transparent;")
+        
+        # The stack
+        self.stack = QStackedWidget()
+        self.main_layout.addWidget(self.stack)
+        
+        # Expanded View
+        self.expanded_widget = QWidget()
+        expanded_layout = QVBoxLayout(self.expanded_widget)
+        expanded_layout.setContentsMargins(10, 5, 10, 5)
+        expanded_layout.setSpacing(2)
+        
+        self.pid_label = QLabel("No PID")
+        self.pid_label.setObjectName("pid_label")
+        self.pid_label.setStyleSheet("color: #666; font-weight: bold; font-family: 'Segoe UI', Arial;")
+        
+        self.date_label = QLabel("")
+        self.date_label.setObjectName("date_label")
+        self.date_label.setStyleSheet("color: #999; font-size: 11px; font-family: 'Segoe UI', Arial;")
+        
+        expanded_layout.addWidget(self.pid_label)
+        expanded_layout.addWidget(self.date_label)
+        
+        # Compact View
+        self.compact_widget = QWidget()
+        compact_layout = QVBoxLayout(self.compact_widget)
+        compact_layout.setContentsMargins(0, 0, 0, 0)
+        compact_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.icon_label = QLabel("PID") 
+        self.icon_label.setStyleSheet("color: #666; font-weight: bold; font-size: 10px;")
+        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        compact_layout.addWidget(self.icon_label)
+        
+        self.stack.addWidget(self.compact_widget)
+        self.stack.addWidget(self.expanded_widget)
+        
+        # Set fixed height to match navigation items
+        self.setFixedHeight(50)
+        
+        # Initial State (Collapsed by default)
+        self.set_expanded(False)
+
+    def set_expanded(self, expanded: bool):
+        self.stack.setCurrentIndex(1 if expanded else 0)
+        
+    def update_data(self, pid_text, date_text, full_tooltip):
+        self.pid_label.setText(pid_text)
+        self.date_label.setText(date_text)
+        self.setToolTip(full_tooltip)
+
+
+
+class MainWindow(BaseWindowClass):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("JoularJX GUI")
-        self.resize(1280, 800)
+        self.resize(865, 650)
         self.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))
         
         # Core State
@@ -43,6 +113,9 @@ class MainWindow(QMainWindow):
         # UI Setup
         self.setup_ui()
         self.load_styles()
+        
+        # Set initial window size and position
+        self.move(0, 0)
         
         # Initial Data
         self.recent_dirs_manager.update_recent_dirs(self.dashboard.recent_layout)
@@ -61,22 +134,183 @@ class MainWindow(QMainWindow):
         self.dir_history = DirectoryHistory(history_file)
 
     def load_styles(self):
-        """Load external QSS stylesheet."""
-        style_path = PathUtils.get_resource_path('ui/style.qss')
-        if os.path.exists(style_path):
+        """Load external QSS stylesheet with OS-specific overrides."""
+        # Load Common Styles
+        style_content = ""
+        common_path = PathUtils.get_resource_path('ui/style_common.qss')
+        if os.path.exists(common_path):
             try:
-                with open(style_path, "r", encoding="utf-8") as f:
-                    self.setStyleSheet(f.read())
+                with open(common_path, "r", encoding="utf-8") as f:
+                    style_content += f.read()
             except Exception as e:
-                print(f"Failed to load styles: {e}")
+                print(f"Failed to load common styles: {e}")
+
+        # Determine OS-specific style
+        if sys.platform == 'win32':
+            os_style_file = 'ui/style_windows.qss'
+        elif sys.platform == 'darwin':
+            os_style_file = 'ui/style_macos.qss'
+        elif sys.platform.startswith('linux'):
+            os_style_file = 'ui/style_linux.qss'
+        
+        # Load OS Styles and Append
+        if os_style_file:
+            os_path = PathUtils.get_resource_path(os_style_file)
+            if os.path.exists(os_path):
+                try:
+                    with open(os_path, "r", encoding="utf-8") as f:
+                        style_content += "\n/* OS Specific Overrides */\n"
+                        style_content += f.read()
+                except Exception as e:
+                    print(f"Failed to load OS specific styles ({os_style_file}): {e}")
+
+        # Apply combined stylesheet
+        if style_content:
+            self.setStyleSheet(style_content)
 
     def setup_ui(self):
+        is_fluent = sys.platform == 'win32' and hasattr(self, 'navigationInterface')
+        
+        if is_fluent:
+            self._setup_fluent_ui()
+        elif hasattr(self, 'setTitleBar'):
+            self._setup_frameless_ui()
+        else:
+            self._setup_standard_ui()
+    
+    def _setup_frameless_ui(self):
+        """Setup UI for FramelessWindow (macOS)."""
+        # Setup Title Bar
+        from qframelesswindow import StandardTitleBar
+        self.setTitleBar(StandardTitleBar(self))
+        
+        # Setup standard UI content
+        self._setup_standard_ui()
+        
+        # Specific tweaks for frameless
+        if self.layout():
+            pass
+    
+    def _setup_fluent_ui(self):
+        """Setup UI for FluentWindow (Windows only)."""
+        self.stack = self.stackedWidget
+        
+        # Setup pages
+        self.setup_pages()
+        
+        # Add navigation items
+        from qfluentwidgets import NavigationItemPosition, FluentIcon, NavigationDisplayMode
+        
+        # Helper to get icon
+        def get_icon(name):
+            return QIcon(PathUtils.get_resource_path(f'ui/img/{name}'))
+
+        # Store navigation items for enabling/disabling
+        self.nav_home = self.navigationInterface.addItem(
+            routeKey='dashboard',
+            icon=get_icon('home.png'),
+            text='Home',
+            onClick=lambda: self.stack.setCurrentIndex(0)
+        )
+        
+        self.nav_analysis = self.navigationInterface.addItem(
+            routeKey='methods',
+            icon=get_icon('method.png'),
+            text='Analysis',
+            onClick=lambda: self.stack.setCurrentIndex(1)
+        )
+        self.nav_analysis.setVisible(False) # Hide until PID selected
+        
+        self.nav_calltrees = self.navigationInterface.addItem(
+            routeKey='calltrees',
+            icon=get_icon('calltrees.png'),
+            text='App CallTree',
+            onClick=lambda: self.stack.setCurrentIndex(2)
+        )
+        self.nav_calltrees.setVisible(False) # Hide until PID selected
+        
+        self.navigationInterface.setCurrentItem('dashboard')
+        
+        # Hide the back button/return arrow
+        self.navigationInterface.setReturnButtonVisible(False)
+
+        self.pid_widget = PidDisplayWidget()
+        self.pid_widget.setVisible(False)
+        
+        panel = getattr(self.navigationInterface, 'panel', None)
+        if panel:
+            bottom_layout = getattr(panel, 'bottomLayout', None)
+            if bottom_layout:
+                 bottom_layout.insertWidget(0, self.pid_widget)
+            else:
+                 if panel.layout():
+                     panel.layout().addWidget(self.pid_widget)
+
+        self.navigationInterface.displayModeChanged.connect(self.on_display_mode_changed)
+        
+        self.nav_theme = self.navigationInterface.addItem(
+            routeKey='theme_btn',
+            icon=FluentIcon.BRIGHTNESS,
+            text='Thème',
+            onClick=self.toggle_theme_fluent,
+            position=NavigationItemPosition.BOTTOM
+        )
+        
+        # Add separator
+        self.navigationInterface.addSeparator(position=NavigationItemPosition.BOTTOM)
+        
+        # Connect signals with error handling
+        try:
+            self.dashboard.browse_btn.clicked.connect(self.select_directory)
+            self.dashboard.pid_selected.connect(self.load_pid_data_direct)
+        except Exception as e:
+            print(f"Error connecting dashboard signals: {e}")
+            traceback.print_exc()
+
+    #TODO
+    def toggle_theme_fluent(self):
+        """Toggle light/dark theme."""
+        from qfluentwidgets import setTheme, Theme, FluentIcon
+        
+        # Helper to toggle
+        is_dark = self.nav_theme.text() == "Thème (Sombre)" or self.nav_theme.text() == "Sombre"
+
+        if not is_dark:
+            setTheme(Theme.DARK)
+            self.nav_theme.setText("Thème (Sombre)")
+            self.nav_theme.setIcon(FluentIcon.QUIET_HOURS)
+        else:
+            setTheme(Theme.LIGHT)
+            self.nav_theme.setText("Thème (Clair)")
+            self.nav_theme.setIcon(FluentIcon.BRIGHTNESS)
+    
+    def on_display_mode_changed(self, mode):
+        """ Handle sidebar collapse/expand to update PID widget. """
+        from qfluentwidgets import NavigationDisplayMode
+        is_expanded = (mode == NavigationDisplayMode.EXPAND or mode == NavigationDisplayMode.MENU)
+        
+        if hasattr(self, 'pid_widget'):
+            self.pid_widget.set_expanded(is_expanded)
+
+    def _setup_standard_ui(self):
+        """Setup UI for standard QMainWindow (macOS/Linux)."""
         # Central layout
         central_widget = QWidget()
         main_layout = QHBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-        self.setCentralWidget(central_widget)
+        
+        if hasattr(self, 'setCentralWidget'):
+            self.setCentralWidget(central_widget)
+        else:
+            # Fallback for QWidget-based windows (like FramelessWindow)
+            if not self.layout():
+                layout = QVBoxLayout(self)
+                layout.setContentsMargins(0, 0, 0, 0)
+                layout.setSpacing(0)
+                self.setLayout(layout)
+            
+            self.layout().addWidget(central_widget)
         
         # Sidebar
         self.sidebar = SidebarWidget(self)
@@ -120,10 +354,6 @@ class MainWindow(QMainWindow):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setContentsMargins(20, 20, 20, 20)
-        
-        title = QLabel("Call Trees Analysis")
-        title.setObjectName("page_title")
-        layout.addWidget(title)
         
         # Card interface
         self.calltree_cards = CallTreeCardInterface(self)
@@ -213,20 +443,43 @@ class MainWindow(QMainWindow):
             self.current_path = pid_path
             self.reader = JoularReader(pid_path)
             
-            self.sidebar.update_pid(pid)
+            if hasattr(self, 'sidebar'):
+                self.sidebar.update_pid(pid)
+                self.sidebar.enable_navigation()
+
+            if hasattr(self, 'nav_analysis'):
+                self.nav_analysis.setVisible(True)
+                self.nav_calltrees.setVisible(True)
+                self.navigationInterface.setCurrentItem('methods')
+            
+            date_str = ""
+            try:
+                parts = pid.split('-')
+                if len(parts) > 1:
+                    import datetime
+                    ts = float(parts[1])
+                    if ts > 1000000000000: ts /= 1000.0
+                    dt = datetime.datetime.fromtimestamp(ts)
+                    date_str = dt.strftime("%d/%m/%Y %H:%M")
+            except:
+                pass
+
+            if hasattr(self, 'pid_widget'):
+                pid_text = f"PID: {self.current_pid}"
+                full_tooltip = f"PID: {self.current_pid}\nDate: {date_str}\nPath: {pid_path}"
+                self.pid_widget.update_data(pid_text, date_str, full_tooltip)
+                self.pid_widget.setVisible(True)
             
             self.update_methods_display()
             self.update_calltrees_display()
-            self.sidebar.enable_navigation()
-            
-            self.update_calltrees_display()
-            self.sidebar.enable_navigation()
             
             # Auto-navigate to Analysis page
             self.stack.setCurrentIndex(1)
+            
             # Update sidebar selection
-            self.sidebar.btn_analyses.setChecked(True)
-            self.sidebar.btn_home.setChecked(False)
+            if hasattr(self, 'sidebar'):
+                self.sidebar.btn_analyses.setChecked(True)
+                self.sidebar.btn_home.setChecked(False)
         except Exception as e:
             ErrorHandler.show_error(self, "Error", "Failed to load PID data", traceback.format_exc())
 
@@ -265,8 +518,10 @@ class MainWindow(QMainWindow):
 
 def main():
     try:
+        from ui.window_factory import apply_platform_style
+        
         app = QApplication(sys.argv)
-        app.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))
+        apply_platform_style(app)  # Apply platform-specific styles
         app.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))
         window = MainWindow()
         window.show()
