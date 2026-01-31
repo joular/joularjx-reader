@@ -1,27 +1,20 @@
-import sys
-from PyQt6.QtWidgets import QMainWindow
+from utils.os_config import OSConfig
 
 def get_base_window_class():
     """Returns the appropriate base window class for the current OS."""
-    if sys.platform == 'win32':
-        try:
-            from qfluentwidgets import FluentWindow
-            return FluentWindow
-        except ImportError:
-            print("Warning: PyQt6-Fluent-Widgets not installed. Falling back to QMainWindow.")
-            return QMainWindow
-    elif sys.platform == 'darwin':
-        try:
-            from qframelesswindow import FramelessWindow
-            return FramelessWindow
-        except ImportError:
-            print("Warning: pyqt-frameless-window not installed. Falling back to QMainWindow.")
-            return QMainWindow
-    else:
-        # Linux and other platforms
-        return QMainWindow
+    return OSConfig.get_window_class()
+
 
 def apply_platform_style(app):
     """Apply platform-specific style to the QApplication."""
-    if sys.platform.startswith('linux'):
-        app.setStyle('Fusion')
+    from utils.os_config import OSConfig
+    
+    if OSConfig.is_macos():
+        app.setStyle("Fusion")
+        print("[WindowFactory] Using Fusion style (macOS Fluent)")
+    elif OSConfig.is_windows():
+        pass
+    else:
+        app.setStyle("Fusion")
+        print("[WindowFactory] Using Fusion style")
+

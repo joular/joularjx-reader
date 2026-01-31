@@ -3,8 +3,13 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                             QTableWidgetItem, QHeaderView, QAbstractItemView, QSizePolicy)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
+import sys
 from utils.path_utils import PathUtils
 from utils.style_utils import get_title_style, get_description_style, get_separator_style, get_help_text_style, get_icon_style
+from utils.os_config import OSConfig
+
+TableBaseClass = OSConfig.get_table_widget_class()
+
 
 class DashboardWidget(QWidget):
     """ Enhanced Dashboard matching Figma mockup with conditional results. """
@@ -45,7 +50,7 @@ class DashboardWidget(QWidget):
         self.left_layout = QVBoxLayout(self.left_column)
         self.left_layout.setContentsMargins(0, 0, 0, 0)
         self.setup_action_card()
-        self.content_layout.addWidget(self.left_column, stretch=5)
+        self.content_layout.addWidget(self.left_column, stretch=40)
         
         # Right Column
         self.right_column = QWidget()
@@ -59,7 +64,7 @@ class DashboardWidget(QWidget):
         # Recent Section (Fallback/Initial)
         self.setup_recent_section()
         
-        self.content_layout.addWidget(self.right_column, stretch=4)
+        self.content_layout.addWidget(self.right_column, stretch=60)
 
 
     def setup_header(self):
@@ -92,17 +97,17 @@ class DashboardWidget(QWidget):
         self.action_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         
         card_layout = QVBoxLayout(self.action_card)
-        card_layout.setContentsMargins(20, 20, 20, 20) # Reduced padding
-        card_layout.setSpacing(20)
+        card_layout.setContentsMargins(20, 20, 20, 20)
+        card_layout.setSpacing(10)
         card_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Icon & Title Area
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(8)
+        info_layout.setSpacing(5)
         info_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         icon_label = QLabel()
-        icon_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/joularjx.png')).pixmap(80, 80)) # Slightly smaller icon
+        icon_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/joularjx.png')).pixmap(120, 120)) # Increased to 120x120
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         title = QLabel("New Analysis")
@@ -120,7 +125,7 @@ class DashboardWidget(QWidget):
         
         # Links Row
         links_layout = QHBoxLayout()
-        links_layout.setSpacing(15)
+        links_layout.setSpacing(10)
         links_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         links_data = [
@@ -142,12 +147,11 @@ class DashboardWidget(QWidget):
                 sep.setStyleSheet(get_separator_style())
                 links_layout.addWidget(sep)
         
-        # Selection Frame (The box matching Figma)
         self.select_frame = QFrame()
         self.select_frame.setObjectName("select_folder_frame")
         select_layout = QVBoxLayout(self.select_frame)
-        select_layout.setContentsMargins(15, 15, 15, 15)
-        select_layout.setSpacing(15)
+        select_layout.setContentsMargins(10, 10, 10, 10)
+        select_layout.setSpacing(10)
         
         # Folder Header
         select_header = QHBoxLayout()
@@ -164,15 +168,15 @@ class DashboardWidget(QWidget):
         
         self.path_display = QLabel("/path/results")
         self.path_display.setObjectName("select_path_label")
-        self.path_display.setMinimumHeight(40)
+        self.path_display.setMinimumHeight(30)
         
         # THE BUTTON (Prominent and Centered)
         btn_container = QHBoxLayout()
         btn_container.addStretch()
         self.browse_btn = QPushButton("   Browse folders")
         self.browse_btn.setObjectName("browse_btn")
-        self.browse_btn.setFixedWidth(280)
-        self.browse_btn.setFixedHeight(50)
+        self.browse_btn.setFixedWidth(260)
+        self.browse_btn.setFixedHeight(40)
         self.browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_container.addWidget(self.browse_btn)
         btn_container.addStretch()
@@ -217,7 +221,7 @@ class DashboardWidget(QWidget):
         self.search_bar.textChanged.connect(self.filter_results)
         
         # Results Table
-        self.results_table = QTableWidget()
+        self.results_table = TableBaseClass()
         self.results_table.setColumnCount(2)
         self.results_table.setHorizontalHeaderLabels(["PID", "date"])
         self.results_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -226,13 +230,14 @@ class DashboardWidget(QWidget):
         self.results_table.verticalHeader().setVisible(False)
         self.results_table.setAlternatingRowColors(True)
         self.results_table.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.results_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.results_table.cellClicked.connect(self.on_row_clicked)
         self.results_table.setObjectName("pid_results_table")
         
         header = self.results_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         
         results_layout.addLayout(title_row)
         results_layout.addWidget(self.search_bar)
@@ -275,7 +280,6 @@ class DashboardWidget(QWidget):
         for row, info in enumerate(pids_info):
             self.add_result_row(row, info)
         
-        # Adjust table height based on content or keep fixed
 
     def add_result_row(self, row, info):
         pid, date, full_path = info
@@ -307,4 +311,7 @@ class DashboardWidget(QWidget):
         pass
     
     def set_selected_path(self, path):
-        self.path_display.setText(path)
+        metrics = self.path_display.fontMetrics()
+        elided_path = metrics.elidedText(path, Qt.TextElideMode.ElideMiddle, 300) 
+        self.path_display.setText(elided_path)
+        self.path_display.setToolTip(path)

@@ -79,3 +79,59 @@ QTableWidget::item:selected {
 QWidget#sidebar {
     background-color: #E0E0E0; 
 }
+
+QWidget#sidebar {
+    min-width: 170px !important;
+    max-width: 170px !important;
+}
+
+QPushButton.nav-button {
+    text-align: left !important;
+    padding-left: 15px !important;
+    font-size: 13px !important;
+}
+
+QTableWidget QRadioButton::indicator {
+    width: 14px;
+    height: 14px;
+    background-color: white;
+    border: 1px solid #666666;
+    border-radius: 7px;
+}
+
+QTableWidget QRadioButton::indicator:checked {
+    background-color: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 #444444, stop:0.45 #444444, stop:0.55 white, stop:1 white);
+    border: 1px solid #666666;
+}
+
+QTableWidget QRadioButton::indicator:hover {
+    border-color: #3584E4;
+}
+
+QTableWidget#pid_results_table {
+    border: 1px solid #E0E0E0 !important;
+    font-size: 10pt;
+    background-color: white;
+}
+
+QTableWidget#pid_results_table::item {
+    padding: 4px;
+    border-bottom: 1px solid #F0F0F0 !important;
+    border-right: none !important;
+}
+
+QTableWidget#pid_results_table QHeaderView::section {
+    background-color: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid #3584E4 !important;
+    padding: 4px !important;
+    font-weight: normal !important;
+    color: #555555 !important;
+}
+
+
+QFrame#action_card {
+    border: none !important;
+    background-color: transparent;
+}
+

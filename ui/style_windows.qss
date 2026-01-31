@@ -72,35 +72,3 @@ QTreeWidget::item:selected {
     color: #000000;
     border-left: 3px solid #0067C0;
 }
-
-QTableWidget {
-    background-color: #FAFAFA !important;
-    alternate-background-color: #FAFAFA !important;
-    gridline-color: #E1E1E1 !important;
-    border: 1px solid #D4D4D4 !important;
-    border-radius: 3px !important;
-    selection-background-color: #F3F9FF !important;
-    selection-color: #000000 !important;
-}
-
-QHeaderView::section {
-    background-color: #F3F3F3 !important;
-    border: none !important;
-    border-bottom: 2px solid #E1E1E1 !important;
-    border-right: 1px solid #E8E8E8 !important;
-    text-transform: none !important;
-    font-weight: 600 !important;
-    padding: 8px !important;
-    color: #323232 !important;
-}
-
-QTableWidget::item {
-    border-bottom: 1px solid #F0F0F0 !important;
-    padding: 4px !important;
-}
-
-QTableWidget::item:selected {
-    background-color: #E3F2FD !important;
-    color: #000000 !important;
-    border: none !important;
-}

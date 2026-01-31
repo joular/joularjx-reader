@@ -43,8 +43,8 @@ COLOR_DANGER = "#dc3545"
 COLOR_INFO = "#17a2b8"
 
 COLOR_TOTAL_BG = "#e3f2fd"
-COLOR_TOTAL_INDICATOR = "rgb(66, 135, 245)"
-COLOR_TOTAL_BORDER = "#1976d2"
+COLOR_TOTAL_INDICATOR = "rgb(0, 0, 0)"
+COLOR_TOTAL_BORDER = "#000000"
 
 COLOR_ACCENT_GREEN = "#86EFC5"
 COLOR_ACCENT_PURPLE = "#5D5FEF"
@@ -88,3 +88,33 @@ PADDING_SMALL = "8px"
 PADDING_MEDIUM = "10px"
 PADDING_LARGE = "12px"
 PADDING_XLARGE = "15px"
+
+GRAPH_STYLE = {
+    'background': '#fafafa',
+    'grid_alpha': 0.2,
+    'axis_color': '#666',
+    'axis_width': 1,
+    'curve_width': 2,
+    'crosshair_color': '#666',
+    'crosshair_style': 'dash',
+    'tooltip_background': (255, 255, 255, 230),
+    'tooltip_border': '#ccc',
+    'font_size': '11pt',
+    'title_size': '16pt',
+    'title_color': '#1a1a1a',
+}
+
+TOTAL_COLOR = (0, 0, 0)
+
+METHOD_COLORS = [
+    (220, 53, 69),
+    (0, 123, 255),
+    (40, 167, 69),
+    (253, 126, 20),
+    (111, 66, 193),
+    (32, 201, 151),
+    (232, 62, 140),
+    (52, 58, 64),
+    (255, 193, 7),
+    (23, 162, 184),
+]

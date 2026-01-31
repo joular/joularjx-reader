@@ -23,7 +23,7 @@ class InvalidDirectoryError(DirectoryHistoryError):
 class DirectoryHistory:
     def __init__(self, history_file: str = "directory_history.json"):
         self.history_file = history_file
-        self.max_entries = 10
+        self.max_entries = 6
         self._directories = []  # In-memory cache
         self._last_load = None  # Last load timestamp
         self._cache_duration = timedelta(minutes=5)  # Cache duration

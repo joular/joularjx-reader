@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
 import pyqtgraph as pg
+from ui.widgets import RadioButton
+from utils.os_config import OSConfig
 from utils.style_utils import (get_metric_label_style, get_legend_box_style, get_legend_text_style,
                               get_node_card_style, get_chevron_style, get_node_label_style,
                               get_metric_card_container_style)
@@ -40,7 +42,6 @@ class TreeNode:
 class CallTreeCardInterface(QWidget):
     """Hierarchical card-based interface for call trees."""
     
-    # Signals (disabled - no popups on click)
     calltree_selected = pyqtSignal(object)
     method_selected = pyqtSignal(object)
     
@@ -50,6 +51,7 @@ class CallTreeCardInterface(QWidget):
         self.all_call_trees = {}
         self.all_items = []
         self.item_chevrons = {}  # Map tree items to their chevron labels
+        self.item_name_labels = {}
         self.expansion_state = {} # Map item ID to expanded state
         self.setup_ui()
         
@@ -95,13 +97,13 @@ class CallTreeCardInterface(QWidget):
         # Radio buttons for filtering (mimicking Analysis Page)
         self.filter_group = QButtonGroup(self)
         
-        self.app_radio = QRadioButton("Application Only")
+        self.app_radio = RadioButton("Application Only")
         self.app_radio.setChecked(True)
         self.app_radio.toggled.connect(self.refresh_display)
         self.app_radio.setObjectName("filter_radio")
         self.filter_group.addButton(self.app_radio)
         
-        self.all_radio = QRadioButton("All CallTrees")
+        self.all_radio = RadioButton("All CallTrees")
         self.all_radio.toggled.connect(self.refresh_display)
         self.all_radio.setObjectName("filter_radio")
         self.filter_group.addButton(self.all_radio)
@@ -278,9 +280,10 @@ class CallTreeCardInterface(QWidget):
     def refresh_display(self):
         """Refresh the tree display based on current filter settings."""
         self.tree.clear()
-        self.all_items = [] # Clear all_items for new population
-        self.item_chevrons.clear() # Clear item_chevrons for new population
-        self.expansion_state.clear() # Clear saved state
+        self.all_items = []
+        self.item_chevrons.clear()
+        self.item_name_labels.clear()
+        self.expansion_state.clear()
         
         # Determine which data to show
         if self.app_radio.isChecked():
@@ -359,15 +362,17 @@ class CallTreeCardInterface(QWidget):
         # Calculate percentage
         percentage = node.get_percentage(total_consumption)
         
-        # Extra info for display
+        # Calculate names
+        short_name = self.extract_method_name(node.name)
+
         extra_info = "" 
         
         # Determine visibility of metrics
         show_metrics = not has_children
 
         # Create the card widget
-        card_widget, chevron_label = self.create_method_card(
-            self.extract_method_name(node.name),
+        card_widget, chevron_label, name_label = self.create_method_card(
+            short_name,
             node.consumption,
             percentage,
             extra_info,
@@ -390,6 +395,10 @@ class CallTreeCardInterface(QWidget):
         # Store chevron reference
         if chevron_label:
             self.item_chevrons[id(item)] = chevron_label
+            
+        # Store name label reference
+        if name_label:
+            self.item_name_labels[id(item)] = name_label
         
         # Recursively render children (sorted by consumption)
         if has_children:
@@ -463,10 +472,24 @@ class CallTreeCardInterface(QWidget):
         
         # Method name
         name_label = QLabel(name)
+        if len(name) > 60:
+             display_name = name[:57] + "..."
+        else:
+             display_name = name
+             
+        name_label.setText(display_name)
+        
         name_label.setStyleSheet(get_node_label_style('name'))
         name_label.setToolTip(full_name)
         name_label.setMinimumWidth(150)
         card_layout.addWidget(name_label)
+        
+        if extra_info:
+            extra_label = QLabel(extra_info)
+            extra_label.setStyleSheet(get_node_label_style('extra'))
+            card_layout.addWidget(extra_label)
+        
+        card_layout.addStretch()
         
         if show_metrics:
             # Consumption
@@ -481,17 +504,9 @@ class CallTreeCardInterface(QWidget):
             percentage_label.setMinimumWidth(50)
             card_layout.addWidget(percentage_label)
         
-        # Extra info if present and not empty
-        if extra_info:
-            extra_label = QLabel(extra_info)
-            extra_label.setStyleSheet(get_node_label_style('extra'))
-            card_layout.addWidget(extra_label)
-        
-        card_layout.addStretch()
-        
         container_layout.addWidget(card, 1)
         
-        return container, chevron_label
+        return container, chevron_label, name_label
     
     def on_item_clicked(self, item, column):
         """Handle item click - only for expand/collapse, no popups."""
@@ -511,17 +526,52 @@ class CallTreeCardInterface(QWidget):
             child.setExpanded(True)
             self._recursive_expand(child)
 
+    def _update_label_with_truncation(self, item_id, full_text):
+        """Update label text with truncation and tooltip."""
+        label = self.item_name_labels[item_id]
+        
+        if len(full_text) > 60:
+            display_text = full_text[:57] + "..."
+        else:
+            display_text = full_text
+            
+        label.setText(display_text)
+        label.setToolTip(full_text)
+
     def on_item_expanded(self, item):
         """Handle item expansion - update chevron to down arrow."""
         if id(item) in self.item_chevrons:
             self.item_chevrons[id(item)].setText("▼")
             self.item_chevrons[id(item)].setStyleSheet(get_chevron_style(True))
+            
+        if id(item) in self.item_name_labels:
+            data = item.data(0, Qt.ItemDataRole.UserRole)
+            if data and 'name' in data:
+                short_name = self.extract_method_name(data['name'])
+                self._update_label_with_truncation(id(item), short_name)
     
     def on_item_collapsed(self, item):
         """Handle item collapse - update chevron to right arrow."""
         if id(item) in self.item_chevrons:
             self.item_chevrons[id(item)].setText("▶")
             self.item_chevrons[id(item)].setStyleSheet(get_chevron_style(False))
+
+        if id(item) in self.item_name_labels:
+            data = item.data(0, Qt.ItemDataRole.UserRole)
+            if data and 'node' in data:
+                node = data['node']
+                parts = [self.extract_method_name(node.name)]
+                
+                curr = node
+                while len(curr.children) == 1:
+                    child = list(curr.children.values())[0]
+                    parts.append(self.extract_method_name(child.name))
+                    curr = child
+                    
+                full_path = ".".join(parts)
+                self._update_label_with_truncation(id(item), full_path)
+            elif data and 'name' in data:
+                 self._update_label_with_truncation(id(item), data['name'])
     
     def filter_tree(self, text):
         """Filter tree items based on search text."""

@@ -128,8 +128,8 @@ class RecentDirectories:
         """Remove a directory from recent directories."""
         try:
             self.dir_history.remove_directory(directory)
-            if self.parent:
-                self.update_recent_dirs(self.parent.recent_layout)
+            if self.parent and hasattr(self.parent, 'dashboard'):
+                self.update_recent_dirs(self.parent.dashboard.recent_layout)
         except Exception as e:
             ErrorHandler.show_error(
                 self.parent,

@@ -8,10 +8,12 @@ from .style_utils import (
     get_progress_bar_style,
 )
 from .path_utils import PathUtils
+from .os_config import OSConfig
 
 __all__ = [
     'ErrorHandler',
     'get_progress_color',
     'get_progress_bar_style',
     'PathUtils',
+    'OSConfig',
 ]

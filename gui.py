@@ -22,19 +22,19 @@ from components import (
 )
 from utils import ErrorHandler
 from utils.path_utils import PathUtils
+from utils.os_config import OSConfig
+from utils.date_utils import get_directory_date, format_pid_date_short
 from ui.window_factory import get_base_window_class
 
 
-# Dynamically create MainWindow class with OS-specific base
 BaseWindowClass = get_base_window_class()
 
 class PidDisplayWidget(QWidget):
-    """ Widget that adapts between detailed (expanded) and compact (collapsed) views. """
     clicked = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.isSelectable = False # Important for Fluent safety, though we bypass API
+        self.isSelectable = False
         
         # Main layout for the widget
         self.main_layout = QVBoxLayout(self)
@@ -98,7 +98,12 @@ class MainWindow(BaseWindowClass):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("JoularJX GUI")
-        self.resize(865, 650)
+        
+        if OSConfig.is_windows() or OSConfig.is_macos():
+            self.resize(875, 650)
+        else:
+            self.resize(1015, 650)
+            
         self.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))
         
         # Core State
@@ -134,42 +139,33 @@ class MainWindow(BaseWindowClass):
         self.dir_history = DirectoryHistory(history_file)
 
     def load_styles(self):
-        """Load external QSS stylesheet with OS-specific overrides."""
-        # Load Common Styles
         style_content = ""
         common_path = PathUtils.get_resource_path('ui/style_common.qss')
         if os.path.exists(common_path):
             try:
                 with open(common_path, "r", encoding="utf-8") as f:
-                    style_content += f.read()
+                    common_qss = f.read()
+                    style_content += common_qss
             except Exception as e:
                 print(f"Failed to load common styles: {e}")
 
-        # Determine OS-specific style
-        if sys.platform == 'win32':
-            os_style_file = 'ui/style_windows.qss'
-        elif sys.platform == 'darwin':
-            os_style_file = 'ui/style_macos.qss'
-        elif sys.platform.startswith('linux'):
-            os_style_file = 'ui/style_linux.qss'
+        os_style_file = OSConfig.get_style_file()
+        os_path = PathUtils.get_resource_path(os_style_file)
         
-        # Load OS Styles and Append
-        if os_style_file:
-            os_path = PathUtils.get_resource_path(os_style_file)
-            if os.path.exists(os_path):
-                try:
-                    with open(os_path, "r", encoding="utf-8") as f:
-                        style_content += "\n/* OS Specific Overrides */\n"
-                        style_content += f.read()
-                except Exception as e:
-                    print(f"Failed to load OS specific styles ({os_style_file}): {e}")
+        if os.path.exists(os_path):
+            try:
+                with open(os_path, "r", encoding="utf-8") as f:
+                    style_content += "\n/* OS Specific Overrides */\n"
+                    style_content += f.read()
+            except Exception as e:
+                print(f"Failed to load OS specific styles ({os_style_file}): {e}")
 
         # Apply combined stylesheet
         if style_content:
             self.setStyleSheet(style_content)
 
     def setup_ui(self):
-        is_fluent = sys.platform == 'win32' and hasattr(self, 'navigationInterface')
+        is_fluent = hasattr(self, 'navigationInterface')
         
         if is_fluent:
             self._setup_fluent_ui()
@@ -184,12 +180,18 @@ class MainWindow(BaseWindowClass):
         from qframelesswindow import StandardTitleBar
         self.setTitleBar(StandardTitleBar(self))
         
+        self.titleBar.minBtn.show()
+        self.titleBar.maxBtn.show()
+        self.titleBar.closeBtn.show()
+        
+        self.titleBar.raise_()
+        
         # Setup standard UI content
         self._setup_standard_ui()
         
         # Specific tweaks for frameless
         if self.layout():
-            pass
+             self.layout().setContentsMargins(0, 0, 0, 0)
     
     def _setup_fluent_ui(self):
         """Setup UI for FluentWindow (Windows only)."""
@@ -248,17 +250,6 @@ class MainWindow(BaseWindowClass):
 
         self.navigationInterface.displayModeChanged.connect(self.on_display_mode_changed)
         
-        self.nav_theme = self.navigationInterface.addItem(
-            routeKey='theme_btn',
-            icon=FluentIcon.BRIGHTNESS,
-            text='Thème',
-            onClick=self.toggle_theme_fluent,
-            position=NavigationItemPosition.BOTTOM
-        )
-        
-        # Add separator
-        self.navigationInterface.addSeparator(position=NavigationItemPosition.BOTTOM)
-        
         # Connect signals with error handling
         try:
             self.dashboard.browse_btn.clicked.connect(self.select_directory)
@@ -267,25 +258,7 @@ class MainWindow(BaseWindowClass):
             print(f"Error connecting dashboard signals: {e}")
             traceback.print_exc()
 
-    #TODO
-    def toggle_theme_fluent(self):
-        """Toggle light/dark theme."""
-        from qfluentwidgets import setTheme, Theme, FluentIcon
-        
-        # Helper to toggle
-        is_dark = self.nav_theme.text() == "Thème (Sombre)" or self.nav_theme.text() == "Sombre"
-
-        if not is_dark:
-            setTheme(Theme.DARK)
-            self.nav_theme.setText("Thème (Sombre)")
-            self.nav_theme.setIcon(FluentIcon.QUIET_HOURS)
-        else:
-            setTheme(Theme.LIGHT)
-            self.nav_theme.setText("Thème (Clair)")
-            self.nav_theme.setIcon(FluentIcon.BRIGHTNESS)
-    
     def on_display_mode_changed(self, mode):
-        """ Handle sidebar collapse/expand to update PID widget. """
         from qfluentwidgets import NavigationDisplayMode
         is_expanded = (mode == NavigationDisplayMode.EXPAND or mode == NavigationDisplayMode.MENU)
         
@@ -293,7 +266,6 @@ class MainWindow(BaseWindowClass):
             self.pid_widget.set_expanded(is_expanded)
 
     def _setup_standard_ui(self):
-        """Setup UI for standard QMainWindow (macOS/Linux)."""
         # Central layout
         central_widget = QWidget()
         main_layout = QHBoxLayout(central_widget)
@@ -408,31 +380,7 @@ class MainWindow(BaseWindowClass):
             ErrorHandler.show_error(self, "Error", "Failed to load directory", traceback.format_exc())
 
     def get_directory_date(self, path: str) -> str:
-        """Get date from folder name timestamp (preferred) or modification time."""
-        try:
-            import time
-            from datetime import datetime
-            
-            folder_name = os.path.basename(path)
-            parts = folder_name.split('-')
-            
-            if len(parts) > 1:
-                try:
-                    timestamp_str = parts[1]
-                    timestamp = float(timestamp_str)
-                    
-                    if timestamp > 1000000000000:
-                        timestamp = timestamp / 1000.0
-                        
-                    return datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M:%S")
-                except (ValueError, IndexError):
-                    pass # Fallback to mtime
-            
-            # Fallback to modification time
-            mtime = os.path.getmtime(path)
-            return datetime.fromtimestamp(mtime).strftime("%d/%m/%Y %H:%M:%S")
-        except:
-            return "Unknown"
+        return get_directory_date(path)
 
 
     def load_pid_data_direct(self, pid_path: str):
@@ -452,17 +400,7 @@ class MainWindow(BaseWindowClass):
                 self.nav_calltrees.setVisible(True)
                 self.navigationInterface.setCurrentItem('methods')
             
-            date_str = ""
-            try:
-                parts = pid.split('-')
-                if len(parts) > 1:
-                    import datetime
-                    ts = float(parts[1])
-                    if ts > 1000000000000: ts /= 1000.0
-                    dt = datetime.datetime.fromtimestamp(ts)
-                    date_str = dt.strftime("%d/%m/%Y %H:%M")
-            except:
-                pass
+            date_str = format_pid_date_short(pid) or ""
 
             if hasattr(self, 'pid_widget'):
                 pid_text = f"PID: {self.current_pid}"

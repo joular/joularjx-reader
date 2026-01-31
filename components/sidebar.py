@@ -3,29 +3,43 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon
 from utils.path_utils import PathUtils
-from utils.style_utils import get_theme_button_style
+from utils.os_config import OSConfig
+from utils.ui_constants import SIDEBAR_WIDTH_WINDOWS, SIDEBAR_WIDTH_OTHER, LOGO_SIZE_WINDOWS, LOGO_SIZE_OTHER
 
 class SidebarWidget(QWidget):
     """ Custom sidebar widget for navigation. """
     
-    SIDEBAR_WIDTH = 250
-
+    SIDEBAR_WIDTH_WINDOWS = 70
+    SIDEBAR_WIDTH_OTHER = 200
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("sidebar")
-        self.setFixedWidth(self.SIDEBAR_WIDTH)
+        
+        if OSConfig.is_windows():
+            self.setFixedWidth(self.SIDEBAR_WIDTH_WINDOWS)
+        else:
+            self.setFixedWidth(self.SIDEBAR_WIDTH_OTHER)
+            
         self.setup_ui()
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(5)
+        layout.setSpacing(2)
         
         # Header / Logo
         header_layout = QHBoxLayout()
-        header_layout.setContentsMargins(20, 20, 20, 20)
+        header_layout.setContentsMargins(5, 10, 5, 10)
+        header_layout.addStretch()
         logo_label = QLabel()
-        logo_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/joularjx.png')).pixmap(200, 120))
+        
+        if OSConfig.is_windows():
+            logo_size = (50, 30)
+        else:
+            logo_size = (100, 60)
+            
+        logo_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/joularjx.png')).pixmap(*logo_size))
         header_layout.addWidget(logo_label)
         header_layout.addStretch()
         layout.addLayout(header_layout)
@@ -34,16 +48,17 @@ class SidebarWidget(QWidget):
         self.nav_group = QButtonGroup(self)
         self.nav_group.setExclusive(True)
         
-        # Buttons
-        self.btn_home = self.create_nav_button("Home", "ui/img/home.png", 0)
+        show_text = not OSConfig.is_windows()
+        
+        self.btn_home = self.create_nav_button("Home" if show_text else "", "ui/img/home.png", 0)
         self.btn_home.setChecked(True)
         layout.addWidget(self.btn_home)
         
-        self.btn_analyses = self.create_nav_button("Analysis", "ui/img/method.png", 1)
+        self.btn_analyses = self.create_nav_button("Analysis" if show_text else "", "ui/img/method.png", 1)
         self.btn_analyses.setEnabled(False)
         layout.addWidget(self.btn_analyses)
         
-        self.btn_calltrees = self.create_nav_button("App CallTree", "ui/img/calltrees.png", 2)
+        self.btn_calltrees = self.create_nav_button("App CallTree" if show_text else "", "ui/img/calltrees.png", 2)
         self.btn_calltrees.setEnabled(False)
         layout.addWidget(self.btn_calltrees)
         
@@ -52,10 +67,9 @@ class SidebarWidget(QWidget):
         # Footer for PID info
         self.footer_widget = QWidget()
         footer_layout = QVBoxLayout(self.footer_widget)
-        footer_layout.setContentsMargins(20, 10, 20, 20)
-        footer_layout.setSpacing(10)
+        footer_layout.setContentsMargins(10, 5, 10, 10)
+        footer_layout.setSpacing(5)
         
-        # PID & Date Labels (Moved to TOP of footer)
         info_container = QWidget()
         info_layout = QVBoxLayout(info_container)
         info_layout.setContentsMargins(0, 0, 0, 0)
@@ -71,26 +85,9 @@ class SidebarWidget(QWidget):
         info_layout.addWidget(self.date_label)
         footer_layout.addWidget(info_container)
         
-        # Theme Toggle (Moved to BOTTOM of footer)
-        self.theme_btn = QPushButton("☀  Thème")
-        self.theme_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.theme_btn.setFixedHeight(32)
-        self.theme_btn.setStyleSheet(get_theme_button_style(False))
-        self.theme_btn.clicked.connect(self.toggle_theme)
-        footer_layout.addWidget(self.theme_btn)
-        
         layout.addWidget(self.footer_widget)
         # Footer always visible for theme button
         self.footer_widget.setVisible(True) 
-
-    def toggle_theme(self):
-        current_text = self.theme_btn.text()
-        if "☀" in current_text:
-            self.theme_btn.setText("☽ Thème")
-            self.theme_btn.setStyleSheet(get_theme_button_style(True))
-        else:
-            self.theme_btn.setText("☀ Thème")
-            self.theme_btn.setStyleSheet(get_theme_button_style(False))
 
     def update_pid(self, pid_full):
         """Update the sidebar with PID and formatted date."""
