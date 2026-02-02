@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<RCC>
-    <qresource prefix="/">
-        <file>img/home.png</file>
-        <file>img/method.png</file>
-        <file>img/calltrees.png</file>
-        <file>img/down-arrow.png</file>
-    </qresource>
-</RCC> 

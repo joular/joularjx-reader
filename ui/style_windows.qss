@@ -1,0 +1,74 @@
+/* Windows (Fluent-like) Specific Styles */
+
+QWidget {
+    font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+QLineEdit, QComboBox, QPlainTextEdit {
+    border-radius: 4px;
+    border: 1px solid #E5E5E5;
+    background-color: #FFFFFF;
+}
+
+QLineEdit:hover, QComboBox:hover {
+    background-color: #FDFDFD;
+    border: 1px solid #d0d0d0;
+}
+
+QLineEdit:focus {
+    border-bottom: 2px solid #0067C0;
+    background-color: #FFFFFF;
+}
+
+QPushButton {
+    border-radius: 4px;
+    background-color: #FFFFFF;
+    border: 1px solid #D1D1D1;
+    padding: 6px 16px;
+}
+
+QPushButton:hover {
+    background-color: #F6F6F6;
+    border: 1px solid #C0C0C0;
+}
+
+QPushButton:pressed {
+    background-color: #EDEDED;
+    border: 1px solid #B0B0B0;
+    color: #505050;
+}
+
+QPushButton#browse_btn, QPushButton#view_details_btn {
+    border-radius: 4px;
+}
+
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 12px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #898989;
+    min-height: 20px;
+    border-radius: 6px;
+    margin: 2px;
+    width: 8px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #606060;
+}
+
+QTreeWidget::item {
+    border-radius: 3px;
+    padding: 4px;
+}
+
+QTreeWidget::item:selected {
+    background-color: #E0EEF9;
+    color: #000000;
+    border-left: 3px solid #0067C0;
+}

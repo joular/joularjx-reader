@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QHeaderView,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 import pyqtgraph as pg
-from utils.style_utils import get_progress_color, get_table_style, get_header_style, get_progress_bar_style
+from utils.style_utils import get_progress_color, get_progress_bar_style
 
 class CallTreeTable(QTableWidget):
     def __init__(self, parent=None):
@@ -30,10 +30,7 @@ class CallTreeTable(QTableWidget):
         
         # Configure headers style
         header.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft)
-        header.setStyleSheet(get_header_style())
-        
-        # Set table style
-        self.setStyleSheet(get_table_style())
+
         
         # Set minimum column widths
         self.horizontalHeader().setMinimumSectionSize(100)

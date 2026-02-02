@@ -280,8 +280,9 @@ class JoularReader:
         
         if not consumption_dir.exists():
             raise FileNotFoundError(f"Evolution directory not found: {consumption_dir}")
-            
-        evolution_files = list(consumption_dir.glob(f"*-evolution.csv"))
+
+        evolution_files = list(consumption_dir.glob(f"*-{method_name}-evolution.csv"))
+        
         if not evolution_files:
             self._evolution_cache[cache_key] = []
             return []

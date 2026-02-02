@@ -2,6 +2,10 @@ from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                             QScrollArea, QFrame, QWidget, QPushButton, QProgressBar)
 from PyQt6.QtCore import Qt, QObject, QSize
 from PyQt6.QtGui import QFont
+from utils.style_utils import (get_label_style, get_method_box_style, 
+                              get_close_button_style, get_progress_bar_style,
+                              get_metric_label_style, get_base_dialog_style,
+                              get_method_entry_style, get_result_text_style)
 
 class BoxEventFilter(QObject):
     def __init__(self, parent, box, method):
@@ -33,7 +37,7 @@ class CallTreeDetailsDialog(QDialog):
         """Setup the UI components."""
         self.setWindowTitle(f"Call Tree Details - {self.calltree.name}")
         self.setMinimumSize(800, 600)
-        self.setStyleSheet("background-color: #FFFFFF;")
+        self.setStyleSheet(get_base_dialog_style())
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -41,17 +45,11 @@ class CallTreeDetailsDialog(QDialog):
         
         # Add PID name and title section
         pid_label = QLabel(f"PID: {self.current_pid}")
-        pid_label.setStyleSheet("""
-            font-size: 14px;
-            color: #6c757d;
-        """)
+        pid_label.setObjectName("pid_label")
         
         title_label = QLabel("Calltree's branch (from the parent to the last child)")
-        title_label.setStyleSheet("""
-            font-size: 22px;
-            font-weight: bold;
-            color: #212529;
-        """)
+        title_label.setObjectName("title_hero")
+        title_label.setStyleSheet("font-size: 22px;")
         
         header_layout = QVBoxLayout()
         header_layout.addWidget(pid_label)
@@ -62,10 +60,10 @@ class CallTreeDetailsDialog(QDialog):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.Shape.NoFrame)
-        scroll_area.setStyleSheet("background-color: #FFFFFF;")
+        scroll_area.setStyleSheet(get_base_dialog_style())
         
         scroll_content = QWidget()
-        scroll_content.setStyleSheet("background-color: #FFFFFF;")
+        scroll_content.setStyleSheet(get_base_dialog_style())
         scroll_layout = QVBoxLayout(scroll_content)
         scroll_layout.setSpacing(5)
         scroll_layout.setContentsMargins(0, 0, 0, 0)
@@ -94,24 +92,8 @@ class CallTreeDetailsDialog(QDialog):
             method_box.setMinimumHeight(40)
             
             # Style based on position in hierarchy
-            if is_last_child:
-                # Green for last child method
-                method_box.setStyleSheet("""
-                    background-color: #86EFC5;
-                    color: black;
-                    border-radius: 15px;
-                    padding: 10px 20px;
-                    font-size: 14px;
-                """)
-            else:
-                # Blue for all other methods
-                method_box.setStyleSheet("""
-                    background-color: #5D5FEF;
-                    color: white;
-                    border-radius: 15px;
-                    padding: 10px 20px;
-                    font-size: 14px;
-                """)
+            # Style based on position in hierarchy
+            method_box.setStyleSheet(get_method_box_style(is_last_child))
             
             # Add the method box to the layout
             scroll_layout.addWidget(method_box, 0, Qt.AlignmentFlag.AlignHCenter)
@@ -139,20 +121,15 @@ class CallTreeDetailsDialog(QDialog):
         # Method Power Consumption Section
         consumption_frame = QFrame()
         consumption_frame.setFrameShape(QFrame.Shape.NoFrame)
-        consumption_frame.setStyleSheet("""
+        consumption_frame.setStyleSheet(f"""
             border-radius: 4px;
-            background-color: #FFFFFF;
+            {get_base_dialog_style()}
         """)
         
         consumption_layout = QVBoxLayout(consumption_frame)
         
         consumption_title = QLabel("Method Power consumption")
-        consumption_title.setStyleSheet("""
-            font-size: 16px;
-            font-weight: bold;
-            color: #212529;
-            padding: 10px;
-        """)
+        consumption_title.setStyleSheet(get_metric_label_style('dialog_title'))
         consumption_layout.addWidget(consumption_title)
         
         # Show consumption data for the entire calltree
@@ -161,16 +138,13 @@ class CallTreeDetailsDialog(QDialog):
         
         # Method entry container
         method_entry = QWidget()
-        method_entry.setStyleSheet("""
-            background-color: #86EFC5;
-            border-radius: 4px;
-        """)
+        method_entry.setStyleSheet(get_method_entry_style())
         entry_layout = QHBoxLayout(method_entry)
         entry_layout.setContentsMargins(10, 5, 10, 5)
         
         # Lightning bolt icon
         icon_label = QLabel("⚡")
-        icon_label.setStyleSheet("color: #000000; font-size: 16px;")
+        icon_label.setStyleSheet(get_result_text_style(16))
         entry_layout.addWidget(icon_label)
         
         # Full calltree name
@@ -180,7 +154,7 @@ class CallTreeDetailsDialog(QDialog):
             display_name = full_name[:37] + "[..]"
         
         name_label = QLabel(display_name)
-        name_label.setStyleSheet("color: #000000; font-size: 14px;")
+        name_label.setStyleSheet(get_result_text_style(14))
         name_label.setWordWrap(True)
         name_label.setToolTip(full_name)
         entry_layout.addWidget(name_label)
@@ -194,28 +168,12 @@ class CallTreeDetailsDialog(QDialog):
         progress_bar.setValue(int(percentage_value))
         progress_bar.setMaximum(100)
         progress_bar.setFixedHeight(10)
-        progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: none;
-                background-color: #ffffff;
-                border-radius: 4px;
-                text-align: center;
-                margin: 0px;
-                min-height: 10px;
-                max-height: 10px;
-            }
-            QProgressBar::chunk {
-                background-color: #5d9cec;
-                border-radius: 4px;
-                min-height: 10px;
-                max-height: 10px;
-            }
-        """)
+        progress_bar.setStyleSheet(get_progress_bar_style("#5d9cec"))
         progress_bar.setTextVisible(False)
         progress_layout.addWidget(progress_bar)
         # Label for consumption value
         cons_label = QLabel(f"{consumption_value:.3f} J ({percentage_value:.2f}%)")
-        cons_label.setStyleSheet("color: #000000; font-size: 14px;")
+        cons_label.setStyleSheet(get_result_text_style(14))
         cons_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         progress_layout.addWidget(cons_label)
         entry_layout.addWidget(progress_widget, 1)
@@ -226,14 +184,7 @@ class CallTreeDetailsDialog(QDialog):
         
         # Close button
         close_button = QPushButton("Close")
-        close_button.setStyleSheet("""
-            background-color: #0d6efd;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: bold;
-        """)
+        close_button.setStyleSheet(get_close_button_style())
         close_button.clicked.connect(self.accept)
         close_button.setFixedWidth(120)
         

@@ -1,0 +1,317 @@
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+                            QPushButton, QFrame, QScrollArea, QLineEdit, QTableWidget, 
+                            QTableWidgetItem, QHeaderView, QAbstractItemView, QSizePolicy)
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QIcon
+import sys
+from utils.path_utils import PathUtils
+from utils.style_utils import get_title_style, get_description_style, get_separator_style, get_help_text_style, get_icon_style
+from utils.os_config import OSConfig
+
+TableBaseClass = OSConfig.get_table_widget_class()
+
+
+class DashboardWidget(QWidget):
+    """ Enhanced Dashboard matching Figma mockup with conditional results. """
+    
+    # Signal to request loading a specific PID path
+    pid_selected = pyqtSignal(str)
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("dashboard")
+        self.setup_ui()
+
+    def setup_ui(self):
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(30, 20, 30, 20)
+        self.main_layout.setSpacing(15)
+        
+        # Header Section
+        self.setup_header()
+        
+        # Scroll area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setObjectName("dashboard_scroll")
+        
+        self.content_container = QWidget()
+        self.content_container.setObjectName("content_container")
+        self.content_layout = QHBoxLayout(self.content_container)
+        self.content_layout.setContentsMargins(0, 0, 0, 0)
+        self.content_layout.setSpacing(20)
+        scroll.setWidget(self.content_container)
+        self.main_layout.addWidget(scroll)
+        
+        # Left Column
+        self.left_column = QWidget()
+        self.left_layout = QVBoxLayout(self.left_column)
+        self.left_layout.setContentsMargins(0, 0, 0, 0)
+        self.setup_action_card()
+        self.content_layout.addWidget(self.left_column, stretch=40)
+        
+        # Right Column
+        self.right_column = QWidget()
+        self.right_layout = QVBoxLayout(self.right_column)
+        self.right_layout.setContentsMargins(0, 0, 0, 0)
+        self.right_layout.setSpacing(15)
+        
+        # Available Results Section (Hidden by default)
+        self.setup_results_section()
+        
+        # Recent Section (Fallback/Initial)
+        self.setup_recent_section()
+        
+        self.content_layout.addWidget(self.right_column, stretch=60)
+
+
+    def setup_header(self):
+        # Header Container
+        self.header_widget = QWidget()
+        header_layout = QHBoxLayout(self.header_widget)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(10)
+        
+        # Left Text
+        text_layout = QVBoxLayout()
+        text_layout.setSpacing(5)
+        
+        self.title_label = QLabel("JoularJX Dashboard")
+        self.title_label.setObjectName("dashboard_title")
+        
+        text_layout.addWidget(self.title_label)        
+        header_layout.addLayout(text_layout)
+        header_layout.addStretch()
+        
+        self.main_layout.addWidget(self.header_widget)
+
+
+
+
+    def setup_action_card(self):
+        # Action Card Container
+        self.action_card = QFrame()
+        self.action_card.setObjectName("action_card")
+        self.action_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        
+        card_layout = QVBoxLayout(self.action_card)
+        card_layout.setContentsMargins(20, 20, 20, 20)
+        card_layout.setSpacing(10)
+        card_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # Icon & Title Area
+        info_layout = QVBoxLayout()
+        info_layout.setSpacing(5)
+        info_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        icon_label = QLabel()
+        icon_label.setPixmap(QIcon(PathUtils.get_resource_path('ui/img/joularjx.png')).pixmap(120, 120)) # Increased to 120x120
+        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        title = QLabel("New Analysis")
+        title.setObjectName("title_hero")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        desc = QLabel("Select a JoularJX result folder to start analysis")
+        desc.setObjectName("description")
+        desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        desc.setWordWrap(False)
+        
+        info_layout.addWidget(icon_label)
+        info_layout.addWidget(title)
+        info_layout.addWidget(desc)
+        
+        # Links Row
+        links_layout = QHBoxLayout()
+        links_layout.setSpacing(10)
+        links_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        links_data = [
+            ("Documentation", "https://github.com/joular/joularjx"),
+            ("GitHub Repository", "https://github.com/joular/joularjx"), 
+            ("Official Website", "https://www.joular.com")
+        ]
+        
+        for text, url in links_data:
+            link = QLabel(f'<a href="{url}" style="color: #6C757D; text-decoration: none;">{text}</a>')
+            link.setProperty("class", "dashboard-link")
+            link.setCursor(Qt.CursorShape.PointingHandCursor)
+            link.setOpenExternalLinks(True)
+            link.setTextFormat(Qt.TextFormat.RichText)
+            
+            links_layout.addWidget(link)
+            if text != "Official Website":
+                sep = QLabel("|")
+                sep.setStyleSheet(get_separator_style())
+                links_layout.addWidget(sep)
+        
+        self.select_frame = QFrame()
+        self.select_frame.setObjectName("select_folder_frame")
+        select_layout = QVBoxLayout(self.select_frame)
+        select_layout.setContentsMargins(10, 10, 10, 10)
+        select_layout.setSpacing(10)
+        
+        # Folder Header
+        select_header = QHBoxLayout()
+        folder_icon = QLabel("📁")
+        folder_icon.setObjectName("icon_large")
+        select_title = QLabel("Result Folder")
+        select_title.setObjectName("section_title")
+        select_header.addWidget(folder_icon)
+        select_header.addWidget(select_title)
+        select_header.addStretch()
+        
+        select_help = QLabel("Select the folder containing JoularJX measurements")
+        select_help.setObjectName("help_text")
+        
+        self.path_display = QLabel("/path/results")
+        self.path_display.setObjectName("select_path_label")
+        self.path_display.setMinimumHeight(30)
+        
+        # THE BUTTON (Prominent and Centered)
+        btn_container = QHBoxLayout()
+        btn_container.addStretch()
+        self.browse_btn = QPushButton("   Browse folders")
+        self.browse_btn.setObjectName("browse_btn")
+        self.browse_btn.setFixedWidth(260)
+        self.browse_btn.setFixedHeight(40)
+        self.browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_container.addWidget(self.browse_btn)
+        btn_container.addStretch()
+        
+        select_layout.addLayout(select_header)
+        select_layout.addWidget(select_help)
+        select_layout.addWidget(self.path_display)
+        select_layout.addLayout(btn_container)
+        
+        # Assemble Card
+        card_layout.addLayout(info_layout)
+        card_layout.addLayout(links_layout)
+        card_layout.addWidget(self.select_frame)
+        
+        self.left_layout.addWidget(self.action_card)
+        
+    def setup_results_section(self):
+        self.results_widget = QWidget()
+        self.results_widget.setVisible(False)
+        self.results_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        results_layout = QVBoxLayout(self.results_widget)
+        results_layout.setContentsMargins(0, 0, 0, 0)
+        results_layout.setSpacing(20)
+        
+        # Title Row
+        title_row = QHBoxLayout()
+        title_label = QLabel("Available Results")
+        title_label.setObjectName("results_title")
+        
+        self.count_badge = QLabel("0 résultats")
+        self.count_badge.setObjectName("results_count_badge")
+        
+        title_row.addWidget(title_label)
+        title_row.addSpacing(15)
+        title_row.addWidget(self.count_badge)
+        title_row.addStretch()
+        
+        # Search Bar
+        self.search_bar = QLineEdit()
+        self.search_bar.setObjectName("pid_search_bar")
+        self.search_bar.setPlaceholderText("Search PID...")
+        self.search_bar.textChanged.connect(self.filter_results)
+        
+        # Results Table
+        self.results_table = TableBaseClass()
+        self.results_table.setColumnCount(2)
+        self.results_table.setHorizontalHeaderLabels(["PID", "date"])
+        self.results_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.results_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.results_table.setShowGrid(False)
+        self.results_table.verticalHeader().setVisible(False)
+        self.results_table.setAlternatingRowColors(True)
+        self.results_table.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.results_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.results_table.cellClicked.connect(self.on_row_clicked)
+        self.results_table.setObjectName("pid_results_table")
+        
+        header = self.results_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        
+        results_layout.addLayout(title_row)
+        results_layout.addWidget(self.search_bar)
+        results_layout.addWidget(self.results_table)
+        
+        self.right_layout.addWidget(self.results_widget)
+        
+    def setup_recent_section(self):
+        self.recent_widget = QWidget()
+        self.recent_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        recent_layout_v = QVBoxLayout(self.recent_widget)
+        recent_layout_v.setContentsMargins(0, 0, 0, 0)
+        recent_layout_v.setSpacing(15)
+        
+        recent_header = QLabel("Recent Folders")
+        recent_header.setObjectName("recent_section_title")
+        recent_layout_v.addWidget(recent_header)
+        
+        self.recent_container = QWidget()
+        self.recent_layout = QVBoxLayout(self.recent_container)
+        self.recent_layout.setContentsMargins(0, 0, 0, 0)
+        self.recent_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.recent_layout.setSpacing(10)
+
+        recent_layout_v.addWidget(self.recent_container)
+        recent_layout_v.addStretch()
+        
+        self.right_layout.addWidget(self.recent_widget)
+
+    def set_results_visible(self, visible: bool):
+        self.results_widget.setVisible(visible)
+        self.recent_widget.setVisible(not visible)
+
+    def update_results(self, pids_info):
+        """ Populate the results table. pids_info: list of (pid, date, full_path) """
+        self.results_table.setRowCount(0)
+        self.all_results = pids_info
+        self.count_badge.setText(f"{len(pids_info)} results")
+        
+        for row, info in enumerate(pids_info):
+            self.add_result_row(row, info)
+        
+
+    def add_result_row(self, row, info):
+        pid, date, full_path = info
+        self.results_table.insertRow(row)
+        
+        pid_item = QTableWidgetItem(pid)
+        # Store full path in UserRole for easy access
+        pid_item.setData(Qt.ItemDataRole.UserRole, full_path)
+        self.results_table.setItem(row, 0, pid_item)
+        
+        date_item = QTableWidgetItem(date)
+        date_item.setData(Qt.ItemDataRole.UserRole, full_path)
+        self.results_table.setItem(row, 1, date_item)
+
+    def on_row_clicked(self, row, column):
+        """Handle row click to select PID."""
+        item = self.results_table.item(row, 0)
+        if item:
+            full_path = item.data(Qt.ItemDataRole.UserRole)
+            if full_path:
+                self.pid_selected.emit(full_path)
+
+    def filter_results(self, text):
+        for row in range(self.results_table.rowCount()):
+            pid = self.results_table.item(row, 0).text()
+            self.results_table.setRowHidden(row, text.lower() not in pid.lower())
+
+    def update_pid_label(self, pid):
+        pass
+    
+    def set_selected_path(self, path):
+        metrics = self.path_display.fontMetrics()
+        elided_path = metrics.elidedText(path, Qt.TextElideMode.ElideMiddle, 300) 
+        self.path_display.setText(elided_path)
+        self.path_display.setToolTip(path)
