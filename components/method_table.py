@@ -39,6 +39,18 @@ class MethodTable(TableWidget):
         # Configure headers
         self._configure_headers()
         
+        # Center align numeric column headers
+        header = self.horizontalHeader()
+        header_item = self.horizontalHeaderItem(1)  # Consumption
+        if header_item:
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        header_item = self.horizontalHeaderItem(2)  # Average
+        if header_item:
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        header_item = self.horizontalHeaderItem(3)  # Percentage
+        if header_item:
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        
         # Set minimum column widths
         self.horizontalHeader().setMinimumSectionSize(60)
         
@@ -96,19 +108,15 @@ class MethodTable(TableWidget):
         """Configure header resize modes."""
         header = self.horizontalHeader()
         if self.checkbox_mode:
-            header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)  # Checkbox
-            header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)  # Color
-            header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)  # Method
-            header.setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)  # Consumption
-            header.setSectionResizeMode(4, QHeaderView.ResizeMode.Interactive)  # Average
-            header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)      # Percentage
+            header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)    # In graph
+            header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)    # Color
+            header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Method
+            header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)  # Consumption
+            header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)  # Average
+            header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)  # Percentage
             
-            self.setColumnWidth(0, 20)   # Checkbox (Graph)
+            self.setColumnWidth(0, 100)   # In graph
             self.setColumnWidth(1, 16)   # Color
-            self.setColumnWidth(2, 250)  # Method
-            self.setColumnWidth(3, 140)  # Consumption
-            self.setColumnWidth(4, 140)  # Average
-            self.setColumnWidth(5, 105)  # Percentage
         else:
             header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
             header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
@@ -120,14 +128,20 @@ class MethodTable(TableWidget):
             self.setColumnWidth(2, 120)
             self.setColumnWidth(3, 100)
         
-        header.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft)
+        # Center align all headers
+        header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
     
     def enable_checkbox_mode(self):
         """Enable checkbox mode for method visibility toggling."""
         self.checkbox_mode = True
         self.setColumnCount(6)
-        self.setHorizontalHeaderLabels(["Graph", "Color", "Method", "Consumption", "Average", "Percentage"])
+        self.setHorizontalHeaderLabels(["In graph", "Color", "Method", "Consumption", "Average", "Percentage"])
         self._configure_headers()
+        # Center align the numeric column headers
+        header = self.horizontalHeader()
+        for col in [3, 4, 5]:  # Consumption, Average, Percentage
+            item = self.model().headerData(col, Qt.Orientation.Horizontal)
+            header.model().setHeaderData(col, Qt.Orientation.Horizontal, item, Qt.ItemDataRole.DisplayRole)
         
     def update_methods(self, methods, colors=None):
         """Update the table with new methods data."""
@@ -154,7 +168,10 @@ class MethodTable(TableWidget):
             
             total_checkbox = CheckBox()
             total_checkbox.setText("")
+            total_checkbox.setObjectName("in_graph_checkbox")
             total_checkbox.setProperty("method_name", "TOTAL")
+            total_checkbox.setToolTip("Include in graph")
+            total_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
             total_checkbox.blockSignals(True)
             total_checkbox.setChecked(True)
             total_checkbox.blockSignals(False)
@@ -191,14 +208,14 @@ class MethodTable(TableWidget):
             # Name
             name_item = QTableWidgetItem("TOTAL (Global)")
             name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            name_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            name_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             name_item.setFont(QFont("Arial", 12, QFont.Weight.Bold))
             self.setItem(0, 2, name_item)
             
             # Consumption
             consumption_item = QTableWidgetItem("-")
             consumption_item.setFlags(consumption_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            consumption_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            consumption_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             consumption_item.setFont(QFont("Arial", 12))
             self.setItem(0, 3, consumption_item)
 
@@ -217,14 +234,14 @@ class MethodTable(TableWidget):
             
             avg_item = QTableWidgetItem(f"{total_avg:.4f} J")
             avg_item.setFlags(avg_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            avg_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            avg_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             avg_item.setFont(QFont("Arial", 12, QFont.Weight.Bold))
             self.setItem(0, 4, avg_item)
             
             # Percentage
             percentage_item = QTableWidgetItem("100%")
             percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             percentage_item.setFont(QFont("Arial", 12, QFont.Weight.Bold))
             self.setItem(0, 5, percentage_item)
         
@@ -243,7 +260,10 @@ class MethodTable(TableWidget):
                 
                 checkbox = CheckBox()
                 checkbox.setText("")
+                checkbox.setObjectName("in_graph_checkbox")
                 checkbox.setProperty("method_name", method.name)
+                checkbox.setToolTip("Include in graph")
+                checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
                 checkbox.toggled.connect(
                     lambda state, name=method.name: self.method_toggled.emit(name, state)
                 )
@@ -285,7 +305,7 @@ class MethodTable(TableWidget):
                 name = name[:47] + "[..]"
             name_item = QTableWidgetItem(f"⚡ {name}" if not self.checkbox_mode else name)
             name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            name_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            name_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             name_item.setFont(QFont("Arial", 12))
             name_item.setToolTip(method.name)
             self.setItem(row, col_offset, name_item)
@@ -295,7 +315,7 @@ class MethodTable(TableWidget):
             consumption_text = f"{method.consumption:.4f} J"
             consumption_item = QTableWidgetItem(consumption_text)
             consumption_item.setFlags(consumption_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            consumption_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            consumption_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             consumption_item.setFont(QFont("Arial", 12))
             self.setItem(row, col_offset, consumption_item)
             col_offset += 1
@@ -305,7 +325,7 @@ class MethodTable(TableWidget):
             avg_text = f"{avg_val:.4f} J"
             avg_item = QTableWidgetItem(avg_text)
             avg_item.setFlags(avg_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            avg_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            avg_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             avg_item.setFont(QFont("Arial", 12))
             self.setItem(row, col_offset, avg_item)
             col_offset += 1
@@ -315,7 +335,7 @@ class MethodTable(TableWidget):
                 percentage_text = f"{method.percentage:.2f}%"
                 percentage_item = QTableWidgetItem(percentage_text)
                 percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
                 percentage_item.setFont(QFont("Arial", 12))
                 self.setItem(row, col_offset, percentage_item)
             else:
@@ -323,7 +343,7 @@ class MethodTable(TableWidget):
                 percentage_text = f"{method.percentage:.2f}%"
                 percentage_item = QTableWidgetItem(percentage_text)
                 percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
                 percentage_item.setFont(QFont("Arial", 12))
                 self.setItem(row, col_offset, percentage_item)
                 col_offset += 1

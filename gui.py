@@ -4,7 +4,7 @@ import traceback
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QStackedWidget, QLineEdit, QRadioButton, 
                             QLabel, QMessageBox, QFileDialog, QPushButton)
-from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtCore import Qt, QSize, pyqtSignal, QLoggingCategory
 from PyQt6.QtGui import QIcon, QFont, QAction
 
 from reader import JoularReader
@@ -30,6 +30,13 @@ from ui.window_factory import get_base_window_class
 BaseWindowClass = get_base_window_class()
 
 class PidDisplayWidget(QWidget):
+    """Compact sidebar widget that shows the currently loaded PID and its date.
+
+    Switches between two views depending on whether the sidebar is expanded:
+    - **Compact**: a small ``PID`` icon label.
+    - **Expanded**: the full PID string plus a short date beneath it.
+    """
+
     clicked = pyqtSignal()
     
     def __init__(self, parent=None):
@@ -95,14 +102,26 @@ class PidDisplayWidget(QWidget):
 
 
 class MainWindow(BaseWindowClass):
+    """Application main window.
+
+    Selects the appropriate window base class at runtime (standard
+    ``QMainWindow`` on Linux, ``FramelessWindow`` on macOS, ``FluentWindow``
+    on Windows) and builds the shared page stack with:
+    - Dashboard (home / directory picker)
+    - Method Analysis (interactive graph + method table)
+    - App CallTree (hierarchical call-tree browser)
+    """
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("JoularJX GUI")
         
         if OSConfig.is_windows() or OSConfig.is_macos():
-            self.resize(875, 650)
+            self.resize(1020, 680)
+            self.setMinimumSize(960, 640)
         else:
             self.resize(1015, 650)
+            self.setMinimumSize(1045, 680)
             
         self.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))
         
@@ -139,6 +158,7 @@ class MainWindow(BaseWindowClass):
         self.dir_history = DirectoryHistory(history_file)
 
     def load_styles(self):
+        """Load and apply the QSS stylesheets (common + OS-specific)."""
         style_content = ""
         common_path = PathUtils.get_resource_path('ui/style_common.qss')
         if os.path.exists(common_path):
@@ -165,6 +185,7 @@ class MainWindow(BaseWindowClass):
             self.setStyleSheet(style_content)
 
     def setup_ui(self):
+        """Dispatch UI initialisation to the correct platform-specific method."""
         is_fluent = hasattr(self, 'navigationInterface')
         
         if is_fluent:
@@ -200,6 +221,12 @@ class MainWindow(BaseWindowClass):
         # Setup pages
         self.setup_pages()
         
+        nav_panel = self.navigationInterface.panel
+
+        # ── Larger icons and title bar BEFORE adding nav items ─────────
+        self._patch_nav_icon_size(nav_panel)
+        self._customize_title_bar()
+
         # Add navigation items
         from qfluentwidgets import NavigationItemPosition, FluentIcon, NavigationDisplayMode
         
@@ -236,17 +263,20 @@ class MainWindow(BaseWindowClass):
         # Hide the back button/return arrow
         self.navigationInterface.setReturnButtonVisible(False)
 
+        # Resize all nav buttons now that items have been added
+        self._resize_nav_buttons(nav_panel)
+
+        # Align hamburger button with title bar center
+        self._align_menu_button(nav_panel)
+
         self.pid_widget = PidDisplayWidget()
         self.pid_widget.setVisible(False)
         
-        panel = getattr(self.navigationInterface, 'panel', None)
-        if panel:
-            bottom_layout = getattr(panel, 'bottomLayout', None)
-            if bottom_layout:
-                 bottom_layout.insertWidget(0, self.pid_widget)
-            else:
-                 if panel.layout():
-                     panel.layout().addWidget(self.pid_widget)
+        bottom_layout = getattr(nav_panel, 'bottomLayout', None)
+        if bottom_layout:
+            bottom_layout.insertWidget(0, self.pid_widget)
+        elif nav_panel.layout():
+            nav_panel.layout().addWidget(self.pid_widget)
 
         self.navigationInterface.displayModeChanged.connect(self.on_display_mode_changed)
         
@@ -265,8 +295,169 @@ class MainWindow(BaseWindowClass):
         if hasattr(self, 'pid_widget'):
             self.pid_widget.set_expanded(is_expanded)
 
+    def _patch_nav_icon_size(self, nav_panel):
+        """Monkey-patch NavigationPushButton.paintEvent to draw 20×20 icons."""
+        from qfluentwidgets import NavigationPushButton
+        from qfluentwidgets.common.icon import drawIcon
+        from qfluentwidgets.common.config import isDarkTheme
+        from qfluentwidgets.common.color import autoFallbackThemeColor
+        from PyQt6.QtGui import QPainter, QColor, QCursor
+        from PyQt6.QtCore import QRectF, QRect, QPoint
+
+        _original_paintEvent = NavigationPushButton.paintEvent
+
+        def _bigger_icon_paintEvent(self_btn, e):
+            painter = QPainter(self_btn)
+            painter.setRenderHints(
+                QPainter.RenderHint.Antialiasing
+                | QPainter.RenderHint.TextAntialiasing
+                | QPainter.RenderHint.SmoothPixmapTransform
+            )
+            painter.setPen(Qt.PenStyle.NoPen)
+
+            if self_btn.isPressed:
+                painter.setOpacity(0.7)
+            if not self_btn.isEnabled():
+                painter.setOpacity(0.4)
+
+            c = 255 if isDarkTheme() else 0
+            m = self_btn._margins()
+            pl, pr = m.left(), m.right()
+            globalRect = QRect(self_btn.mapToGlobal(QPoint()), self_btn.size())
+
+            if self_btn._canDrawIndicator():
+                painter.setBrush(QColor(c, c, c, 6 if self_btn.isEnter else 10))
+                painter.drawRoundedRect(self_btn.rect(), 5, 5)
+                painter.setBrush(autoFallbackThemeColor(
+                    self_btn.lightIndicatorColor, self_btn.darkIndicatorColor))
+                # Center indicator vertically (default indicatorRect uses hardcoded y=10)
+                ind_h = 18
+                ind_y = (self_btn.height() - ind_h) / 2
+                painter.drawRoundedRect(QRectF(pl, ind_y, 3, ind_h), 1.5, 1.5)
+            elif ((self_btn.isEnter and globalRect.contains(QCursor.pos()))
+                  or self_btn.isAboutSelected) and self_btn.isEnabled():
+                painter.setBrush(QColor(c, c, c,
+                                        6 if self_btn.isAboutSelected else 10))
+                painter.drawRoundedRect(self_btn.rect(), 5, 5)
+
+            # Draw icon at 26×26, always vertically centred;
+            # horizontally centred in compact mode, left-aligned in expanded mode
+            icon_size = 26
+            icon_x = (self_btn.width() - icon_size) / 2 if self_btn.isCompacted else (9 + pl)
+            icon_y = (self_btn.height() - icon_size) / 2
+            drawIcon(self_btn._icon, painter, QRectF(icon_x, icon_y, icon_size, icon_size))
+
+            if self_btn.isCompacted:
+                return
+
+            # Force bold font regardless of any stylesheet override
+            from PyQt6.QtGui import QFont as _QFont
+            _f = _QFont('Segoe UI', 12)
+            _f.setWeight(_QFont.Weight.DemiBold)
+            painter.setFont(_f)
+            painter.setPen(self_btn.textColor())
+            left = 9 + icon_size + 12 + pl  # left-margin + icon + 12 px gap
+            painter.drawText(
+                QRectF(left, 0, self_btn.width() - 13 - left - pr, self_btn.height()),
+                Qt.AlignmentFlag.AlignVCenter,
+                self_btn.text(),
+            )
+
+        NavigationPushButton.paintEvent = _bigger_icon_paintEvent
+
+    def _resize_nav_buttons(self, nav_panel):
+        """Set font on nav buttons after items are added."""
+        from qfluentwidgets import NavigationPushButton, NavigationToolButton
+        font = QFont('Segoe UI', 13)
+        for btn in nav_panel.findChildren(NavigationPushButton):
+            if isinstance(btn, NavigationToolButton):
+                continue
+            btn.setFont(font)
+            btn.update()
+
+    def _align_menu_button(self, nav_panel):
+        """Make the hamburger button 48 px tall so its icon aligns with the title bar centre."""
+        from qfluentwidgets import NavigationToolButton
+        from qfluentwidgets.common.icon import drawIcon
+        from qfluentwidgets.common.config import isDarkTheme
+        from qfluentwidgets.common.color import autoFallbackThemeColor
+        from PyQt6.QtGui import QPainter, QColor, QCursor
+        from PyQt6.QtCore import QRectF, QRect, QPoint
+
+        menu_btn = getattr(nav_panel, 'menuButton', None)
+        if not menu_btn:
+            return
+
+        # Monkey-patch paintEvent to vertically centre the 16×16 icon
+        def _centered_tool_paintEvent(self_btn, e):
+            painter = QPainter(self_btn)
+            painter.setRenderHints(
+                QPainter.RenderHint.Antialiasing
+                | QPainter.RenderHint.TextAntialiasing
+                | QPainter.RenderHint.SmoothPixmapTransform
+            )
+            painter.setPen(Qt.PenStyle.NoPen)
+
+            if self_btn.isPressed:
+                painter.setOpacity(0.7)
+            if not self_btn.isEnabled():
+                painter.setOpacity(0.4)
+
+            c = 255 if isDarkTheme() else 0
+            m = self_btn._margins()
+            pl, pr = m.left(), m.right()
+            globalRect = QRect(self_btn.mapToGlobal(QPoint()), self_btn.size())
+
+            if self_btn._canDrawIndicator():
+                painter.setBrush(QColor(c, c, c, 6 if self_btn.isEnter else 10))
+                painter.drawRoundedRect(self_btn.rect(), 5, 5)
+                painter.setBrush(autoFallbackThemeColor(
+                    self_btn.lightIndicatorColor, self_btn.darkIndicatorColor))
+                painter.drawRoundedRect(self_btn.indicatorRect(), 1.5, 1.5)
+            elif ((self_btn.isEnter and globalRect.contains(QCursor.pos()))
+                  or self_btn.isAboutSelected) and self_btn.isEnabled():
+                painter.setBrush(QColor(c, c, c,
+                                        6 if self_btn.isAboutSelected else 10))
+                painter.drawRoundedRect(self_btn.rect(), 5, 5)
+
+            # Centre the 16×16 icon vertically (default hardcodes y=10)
+            icon_size = 16
+            icon_x = 11.5 + pl
+            icon_y = (self_btn.height() - icon_size) / 2
+            drawIcon(self_btn._icon, painter, QRectF(icon_x, icon_y, icon_size, icon_size))
+
+            if self_btn.isCompacted:
+                return
+
+            painter.setFont(self_btn.font())
+            painter.setPen(self_btn.textColor())
+            left = 44 + pl if not self_btn.icon().isNull() else pl + 16
+            painter.drawText(
+                QRectF(left, 0, self_btn.width() - 13 - left - pr, self_btn.height()),
+                Qt.AlignmentFlag.AlignVCenter,
+                self_btn.text(),
+            )
+
+        NavigationToolButton.paintEvent = _centered_tool_paintEvent
+
+    def _customize_title_bar(self):
+        """Enlarge the FluentWindow title bar icon and title font."""
+        tb = self.titleBar
+        # Bigger window icon (26×26 instead of 18×18)
+        if hasattr(tb, 'iconLabel'):
+            tb.iconLabel.setFixedSize(26, 26)
+            icon = self.windowIcon()
+            if not icon.isNull():
+                tb.iconLabel.setPixmap(icon.pixmap(26, 26))
+        # Bigger title font – visually close to the navigation hamburger icon
+        if hasattr(tb, 'titleLabel'):
+            tb.titleLabel.setStyleSheet(
+                "font-size: 22px; font-weight: 600; font-family: 'Segoe UI';"
+            )
+            tb.titleLabel.adjustSize()
+
     def _setup_standard_ui(self):
-        # Central layout
+        """Build the sidebar + stacked-page layout used on Linux and macOS."""
         central_widget = QWidget()
         main_layout = QHBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -297,6 +488,7 @@ class MainWindow(BaseWindowClass):
         
         # High-level signal connections
         self.sidebar.nav_group.buttonClicked.connect(self.on_nav_clicked)
+        self.sidebar.toggle_requested.connect(self.on_sidebar_toggle)
         self.dashboard.browse_btn.clicked.connect(self.select_directory)
         self.dashboard.pid_selected.connect(self.load_pid_data_direct)
 
@@ -340,6 +532,12 @@ class MainWindow(BaseWindowClass):
         if index >= 0:
             self.stack.setCurrentIndex(index)
 
+    def on_sidebar_toggle(self, is_expanded):
+        """Handle sidebar toggle request. Content adapts automatically via layout."""
+        # The QHBoxLayout with stretch will automatically adapt
+        # No additional action needed as the sidebar width change handles it
+        pass
+
     def select_directory(self):
         try:
             dir_path = QFileDialog.getExistingDirectory(self, "Select Joular Output Directory")
@@ -349,6 +547,7 @@ class MainWindow(BaseWindowClass):
             ErrorHandler.show_error(self, "Error", "Failed to select directory", traceback.format_exc())
 
     def load_directory(self, dir_path: str):
+        """Inspect *dir_path* and either load it as a PID folder or show its children."""
         try:
             dir_path = os.path.normpath(dir_path)
             self.dashboard.set_selected_path(dir_path)
@@ -384,6 +583,7 @@ class MainWindow(BaseWindowClass):
 
 
     def load_pid_data_direct(self, pid_path: str):
+        """Load JoularJX data from *pid_path* and update all pages."""
         try:
             pid_path = os.path.normpath(pid_path)
             pid = os.path.basename(pid_path)
@@ -429,6 +629,7 @@ class MainWindow(BaseWindowClass):
         self.analysis_page.set_reader(self.reader)
 
     def update_calltrees_display(self):
+        """Refresh the call-tree page with data from the current reader."""
         if not self.reader: return
         self.calltree_cards.update_data(self.reader.app_call_trees, self.reader.all_call_trees)
 
@@ -443,6 +644,7 @@ class MainWindow(BaseWindowClass):
             ConsumptionGraphDialog(method, self).exec()
                      
     def is_pid_directory(self, directory: str) -> bool:
+        """Return True if *directory* has the expected JoularJX output structure."""
         try:
             app_dir = os.path.join(directory, "app")
             all_dir = os.path.join(directory, "all")
@@ -457,7 +659,10 @@ class MainWindow(BaseWindowClass):
 def main():
     try:
         from ui.window_factory import apply_platform_style
-        
+
+        # Suppress verbose AT-SPI accessibility bridge warnings on Linux
+        QLoggingCategory.setFilterRules("qt.accessibility.atspi=false")
+
         app = QApplication(sys.argv)
         apply_platform_style(app)  # Apply platform-specific styles
         app.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))

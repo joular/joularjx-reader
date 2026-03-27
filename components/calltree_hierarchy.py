@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QTreeWidget, QTreeWidgetItem, QLineEdit, QFrame, 
                              QProgressBar, QScrollArea, QRadioButton, QButtonGroup, QPushButton)
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QSize
 from PyQt6.QtGui import QFont, QColor
 import pyqtgraph as pg
 from ui.widgets import RadioButton
@@ -52,6 +52,7 @@ class CallTreeCardInterface(QWidget):
         self.all_items = []
         self.item_chevrons = {}  # Map tree items to their chevron labels
         self.item_name_labels = {}
+        self.item_metrics = {}  # Map item ID to metrics container widget
         self.expansion_state = {} # Map item ID to expanded state
         self.setup_ui()
         
@@ -122,9 +123,9 @@ class CallTreeCardInterface(QWidget):
         
         layout.addLayout(search_filter_layout)
         
-        # Intensity legend
-        # legend_widget = self.create_intensity_legend()
-        # layout.addWidget(legend_widget)
+        # Column headers
+        column_header = self.create_column_header()
+        layout.addWidget(column_header)
         
         # Hierarchical tree with custom cards
         self.tree = QTreeWidget()
@@ -196,6 +197,62 @@ class CallTreeCardInterface(QWidget):
         line.setFrameShadow(QFrame.Shadow.Sunken)
         line.setObjectName("metric_separator")
         self.stats_layout.addWidget(line)
+
+    def create_column_header(self):
+        """Create professional column headers."""
+        header_container = QFrame()
+        header_container.setObjectName("calltree_header")
+        header_container.setStyleSheet("""
+            #calltree_header {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #FFFFFF, stop:1 #F5F5F5);
+                border: 1px solid #E0E0E0;
+                border-radius: 8px;
+            }
+        """)
+        header_container.setFixedHeight(40)
+
+        header_layout = QHBoxLayout(header_container)
+        header_layout.setContentsMargins(12, 0, 12, 0)
+        header_layout.setSpacing(15)
+
+        # Spacing to align with chevron+card layout in rows
+        header_layout.addSpacing(23)
+
+        header_label_style = """
+            font-size: 11px;
+            color: #616161;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: transparent;
+        """
+
+        # Method name column header
+        name_header = QLabel("Method Name")
+        name_header.setStyleSheet(header_label_style)
+        name_header.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        header_layout.addWidget(name_header, 30)
+
+        # Progress/Percentage column header
+        progress_header = QLabel("Total %")
+        progress_header.setStyleSheet(header_label_style)
+        progress_header.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        header_layout.addWidget(progress_header, 35)
+
+        # Consumption column header
+        consumption_header = QLabel("Consumption")
+        consumption_header.setStyleSheet(header_label_style)
+        consumption_header.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        header_layout.addWidget(consumption_header, 20)
+
+        # Self % column header
+        self_header = QLabel("Self %")
+        self_header.setStyleSheet(header_label_style)
+        self_header.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        header_layout.addWidget(self_header, 15)
+
+        return header_container
 
     def extract_method_name(self, full_name):
         """Extract the method name from full path."""
@@ -283,6 +340,7 @@ class CallTreeCardInterface(QWidget):
         self.all_items = []
         self.item_chevrons.clear()
         self.item_name_labels.clear()
+        self.item_metrics.clear()
         self.expansion_state.clear()
         
         # Determine which data to show
@@ -353,11 +411,13 @@ class CallTreeCardInterface(QWidget):
             item = QTreeWidgetItem(self.tree)
         else:
             item = QTreeWidgetItem(parent_item)
-            
-        item.setExpanded(True)
         
         # Check if it has children
         has_children = len(node.children) > 0
+        
+        # Only expand parent nodes; leaves should never be marked expanded
+        if has_children:
+            item.setExpanded(True)
         
         # Calculate percentage
         percentage = node.get_percentage(total_consumption)
@@ -367,11 +427,11 @@ class CallTreeCardInterface(QWidget):
 
         extra_info = "" 
         
-        # Determine visibility of metrics
+        # Leaf nodes always show metrics; parent nodes start expanded so metrics hidden
         show_metrics = not has_children
 
         # Create the card widget
-        card_widget, chevron_label, name_label = self.create_method_card(
+        card_widget, chevron_label, name_label, metrics_container = self.create_method_card(
             short_name,
             node.consumption,
             percentage,
@@ -390,6 +450,9 @@ class CallTreeCardInterface(QWidget):
             "name": node.name
         })
         self.tree.setItemWidget(item, 0, card_widget)
+        # Force the row height to match the card widget — required on Windows
+        # where QTreeWidget default row heights are based on font metrics only.
+        item.setSizeHint(0, QSize(0, 50))
         self.all_items.append(item)
         
         # Store chevron reference
@@ -399,6 +462,11 @@ class CallTreeCardInterface(QWidget):
         # Store name label reference
         if name_label:
             self.item_name_labels[id(item)] = name_label
+
+        # Store metrics container for dynamic show/hide — only for parent nodes
+        # Leaf nodes always keep their metrics visible
+        if metrics_container is not None and has_children:
+            self.item_metrics[id(item)] = metrics_container
         
         # Recursively render children (sorted by consumption)
         if has_children:
@@ -420,8 +488,11 @@ class CallTreeCardInterface(QWidget):
         # Container to hold chevron + card
         container = QWidget()
         container_layout = QHBoxLayout(container)
-        container_layout.setContentsMargins(0, 1, 0, 1)
+        container_layout.setContentsMargins(0, 1, 0, 4)  # Increased vertical margins
         container_layout.setSpacing(8)
+        # Fixed height keeps row sizing stable across platforms (Windows needs this
+        # explicitly because QTreeWidget row height defaults to font metrics)
+        container.setFixedHeight(50)
         
         # Add left margin for hierarchy depth
         if depth > 0:
@@ -447,66 +518,156 @@ class CallTreeCardInterface(QWidget):
         # The actual card
         card = QFrame()
         
-        bg_color = "#F8F9FA"
+        bg_color = "#FFFFFF"
         
-        # Compact card styling
+        # Professional card styling with cleaner look
         card.setObjectName("node_card")
         card.setStyleSheet(f"""
             #node_card {{
                 background-color: {bg_color};
-                border: none;
-                border-radius: 6px;
-                padding: 8px 12px;
+                border: 1px solid #E0E0E0;
+                border-radius: 4px;
+                padding65px 12px;
             }}
             #node_card:hover {{
-                background-color: #E9ECEF;
-                border: none;
+                background-color: #F5F7FA;
+                border: 1px solid #C5CAE9;
             }}
         """)
-        card.setMinimumHeight(40)
-        card.setMaximumHeight(40)
+        card.setMinimumHeight(42)
+        card.setMaximumHeight(42)
         
         card_layout = QHBoxLayout(card)
-        card_layout.setContentsMargins(4, 4, 4, 4)
-        card_layout.setSpacing(10)
+        card_layout.setContentsMargins(8, 4, 8, 4)
+        card_layout.setSpacing(15)
+        
+        # Icon + Method name (left side - 30% width)
+        name_container = QWidget()
+        name_container.setStyleSheet("background: transparent;")
+        name_layout = QHBoxLayout(name_container)
+        name_layout.setContentsMargins(0, 0, 0, 0)
+        name_layout.setSpacing(8)
+        
+        # Icon
+        icon_label = QLabel("⚡" if has_children else "○")
+        icon_label.setStyleSheet("""
+            font-size: 13px;
+            color: #558B2F;
+            font-weight: bold;
+            background: transparent;
+        """)
+        icon_label.setFixedWidth(20)
+        name_layout.addWidget(icon_label)
         
         # Method name
         name_label = QLabel(name)
-        if len(name) > 60:
-             display_name = name[:57] + "..."
+        if len(name) > 45:
+             display_name = name[:42] + "..."
         else:
              display_name = name
              
         name_label.setText(display_name)
-        
-        name_label.setStyleSheet(get_node_label_style('name'))
+        name_label.setStyleSheet("""
+            font-size: 12px;
+            color: #212121;
+            font-weight: 500;
+            background: transparent;
+        """)
         name_label.setToolTip(full_name)
-        name_label.setMinimumWidth(150)
-        card_layout.addWidget(name_label)
+        name_layout.addWidget(name_label, 1)
         
-        if extra_info:
-            extra_label = QLabel(extra_info)
-            extra_label.setStyleSheet(get_node_label_style('extra'))
-            card_layout.addWidget(extra_label)
-        
-        card_layout.addStretch()
-        
-        if show_metrics:
-            # Consumption
-            consumption_label = QLabel(f"⚡ {consumption:.2f} J")
-            consumption_label.setStyleSheet(get_node_label_style('consumption'))
-            consumption_label.setMinimumWidth(100)
-            card_layout.addWidget(consumption_label)
-            
-            # Percentage
-            percentage_label = QLabel(f"{percentage:.1f}%")
-            percentage_label.setStyleSheet(get_node_label_style('percentage'))
-            percentage_label.setMinimumWidth(50)
-            card_layout.addWidget(percentage_label)
-        
+        card_layout.addWidget(name_container, 30)  # 30% of space
+
+        # Always build the metrics wrapper; visibility is controlled dynamically
+        metrics_container = QWidget()
+        metrics_container.setStyleSheet("background: transparent;")
+        metrics_main_layout = QHBoxLayout(metrics_container)
+        metrics_main_layout.setContentsMargins(0, 0, 0, 0)
+        metrics_main_layout.setSpacing(0)
+
+        # Progress bar section (35%)
+        progress_container = QWidget()
+        progress_container.setStyleSheet("background: transparent;")
+        progress_layout = QHBoxLayout(progress_container)
+        progress_layout.setContentsMargins(0, 0, 0, 0)
+        progress_layout.setSpacing(8)
+
+        progress_bar = QProgressBar()
+        progress_bar.setValue(int(percentage))
+        progress_bar.setMaximum(100)
+        progress_bar.setFixedHeight(16)
+        progress_bar.setTextVisible(False)
+
+        bar_color = self.get_progress_bar_color(percentage)
+        progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                border: 1px solid #BDBDBD;
+                border-radius: 3px;
+                background-color: #F5F5F5;
+                text-align: center;
+            }}
+            QProgressBar::chunk {{
+                background-color: {bar_color};
+                border-radius: 2px;
+            }}
+        """)
+        progress_layout.addWidget(progress_bar, 1)
+
+        percentage_label = QLabel(f"{percentage:.1f}%")
+        percentage_label.setStyleSheet("""
+            font-size: 11px;
+            color: #424242;
+            font-weight: 500;
+            min-width: 50px;
+            background: transparent;
+        """)
+        percentage_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        progress_layout.addWidget(percentage_label)
+        metrics_main_layout.addWidget(progress_container, 35)
+
+        # Consumption value (20%)
+        consumption_container = QWidget()
+        consumption_container.setStyleSheet("background: transparent;")
+        consumption_layout = QHBoxLayout(consumption_container)
+        consumption_layout.setContentsMargins(0, 0, 0, 0)
+        consumption_layout.setSpacing(0)
+
+        consumption_label = QLabel(f"{consumption:.2f} J")
+        consumption_label.setStyleSheet("""
+            font-size: 11px;
+            color: #1976D2;
+            font-weight: 600;
+            background: transparent;
+        """)
+        consumption_label.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        consumption_layout.addWidget(consumption_label, 1)
+        metrics_main_layout.addWidget(consumption_container, 20)
+
+        # Self percentage (15%)
+        self_container = QWidget()
+        self_container.setStyleSheet("background: transparent;")
+        self_layout = QHBoxLayout(self_container)
+        self_layout.setContentsMargins(0, 0, 0, 0)
+        self_layout.setSpacing(0)
+
+        self_label = QLabel(f"{percentage:.1f}%")
+        self_label.setStyleSheet("""
+            font-size: 11px;
+            color: #757575;
+            font-weight: normal;
+            background: transparent;
+        """)
+        self_label.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        self_layout.addWidget(self_label, 1)
+        metrics_main_layout.addWidget(self_container, 15)
+
+        # Control initial visibility
+        metrics_container.setVisible(show_metrics)
+        card_layout.addWidget(metrics_container, 70)  # 70% of space (35+20+15)
+
         container_layout.addWidget(card, 1)
-        
-        return container, chevron_label, name_label
+
+        return container, chevron_label, name_label, metrics_container
     
     def on_item_clicked(self, item, column):
         """Handle item click - only for expand/collapse, no popups."""
@@ -540,10 +701,17 @@ class CallTreeCardInterface(QWidget):
 
     def on_item_expanded(self, item):
         """Handle item expansion - update chevron to down arrow."""
+        if item.childCount() == 0:
+            return
+
         if id(item) in self.item_chevrons:
             self.item_chevrons[id(item)].setText("▼")
             self.item_chevrons[id(item)].setStyleSheet(get_chevron_style(True))
-            
+
+        # Hide metrics on expanded parent nodes (children display their own)
+        if id(item) in self.item_metrics:
+            self.item_metrics[id(item)].setVisible(False)
+
         if id(item) in self.item_name_labels:
             data = item.data(0, Qt.ItemDataRole.UserRole)
             if data and 'name' in data:
@@ -552,9 +720,16 @@ class CallTreeCardInterface(QWidget):
     
     def on_item_collapsed(self, item):
         """Handle item collapse - update chevron to right arrow."""
+        if item.childCount() == 0:
+            return
+
         if id(item) in self.item_chevrons:
             self.item_chevrons[id(item)].setText("▶")
             self.item_chevrons[id(item)].setStyleSheet(get_chevron_style(False))
+
+        # Show metrics on collapsed parent nodes
+        if id(item) in self.item_metrics:
+            self.item_metrics[id(item)].setVisible(True)
 
         if id(item) in self.item_name_labels:
             data = item.data(0, Qt.ItemDataRole.UserRole)

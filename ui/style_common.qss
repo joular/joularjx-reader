@@ -3,21 +3,21 @@
 /* General Styles */
 QWidget {
     background-color: #FFFFFF;
-    color: #212529;
-    font-family: "Segoe UI", sans-serif;
+    color: #1A1A1A;
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
     font-size: 10pt;
 }
 
 /* Sidebar Styles */
 QWidget#sidebar {
-    background-color: #F8F9FA;
-    border-right: 1px solid #DEE2E6;
+    background-color: #F5F7FA;
+    border-right: 1px solid #E0E3E8;
 }
 
 QLabel#sidebar_title {
-    font-weight: bold;
+    font-weight: 600;
     font-size: 18px;
-    color: #212529;
+    color: #1A1A1A;
     padding: 20px;
 }
 
@@ -26,106 +26,201 @@ QPushButton.nav-button {
     text-align: left;
     padding: 12px 20px;
     border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #495057;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #6B7280;
     margin: 4px 12px;
+    font-weight: 500;
 }
 
 QPushButton.nav-button:hover {
-    background-color: #E9ECEF;
-    color: #212529;
+    background-color: #EEF2F5;
+    color: #1A1A1A;
 }
 
 QPushButton.nav-button:checked {
-    background-color: #E7F1FF;
+    background-color: #DCE8F5;
     color: #0D6EFD;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 QPushButton.nav-button:disabled {
-    color: #ADB5BD;
+    color: #D1D5DB;
     background-color: transparent;
+}
+
+QPushButton.nav-button[collapsed="true"] {
+    text-align: center;
+    padding: 12px 0px;
 }
 
 /* Dashboard Styles */
 QWidget#dashboard {
-    background-color: #FFFFFF;
+    background-color: #FAFBFC;
 }
 
 QLabel#dashboard_title {
-    font-size: 32px;
-    font-weight: bold;
-    color: #212529;
+    font-size: 36px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.5px;
 }
 
 QLabel#dashboard_subtitle {
-    font-size: 16px;
-    color: #6C757D;
+    font-size: 15px;
+    color: #64748B;
+    font-weight: 400;
+    line-height: 1.6;
 }
 
 QFrame#action_card {
     background-color: #FFFFFF;
-    border: 1px solid #DEE2E6;
+    border: 1px solid #E2E8F0;
     border-radius: 12px;
+    padding: 8px;
 }
 
 QFrame#action_card:hover {
-    border: 1px solid #0D6EFD;
+    border: 1px solid #94A3B8;
+    background-color: #FAFBFC;
 }
 
+/* Title Hero in Card */
+QLabel#title_hero {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+}
+
+/* Description text */
+QLabel#description {
+    font-size: 14px;
+    color: #64748B;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+/* Help text */
+QLabel#help_text {
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 400;
+}
+
+/* Section titles */
+QLabel#section_title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+/* Path label */
+QLabel#select_path_label {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+    padding: 8px 12px;
+    background-color: #F1F5F9;
+    border-radius: 6px;
+}
 
 /* Table Styles */
 QTableWidget {
     background-color: #FFFFFF;
-    gridline-color: #F1F3F5;
-    border: 1px solid #DEE2E6;
+    gridline-color: #F1F5F9;
+    border: 1px solid #E2E8F0;
     border-radius: 8px;
-    selection-background-color: #E7F1FF;
+    selection-background-color: #DCE8F5;
     selection-color: #0D6EFD;
     outline: none;
+    font-size: 13px;
+}
+
+QTableWidget::item {
+    padding: 10px 12px;
+    color: #475569;
+}
+
+QTableWidget::item:selected {
+    background-color: #DCE8F5;
+    color: #0D6EFD;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #B8C2CE;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator:hover {
+    border: 1px solid #0D6EFD;
+    background-color: #F8FAFF;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator:checked {
+    border: 1px solid #0D6EFD;
+    background-color: #0D6EFD;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator:disabled {
+    border: 1px solid #D1D5DB;
+    background-color: #F1F5F9;
 }
 
 QHeaderView::section {
-    background-color: #F8F9FA;
-    padding: 12px;
+    background-color: #F8FAFC;
+    padding: 12px 12px;
     border: none;
-    border-bottom: 1px solid #DEE2E6;
-    font-weight: bold;
-    color: #495057;
+    border-bottom: 1px solid #E2E8F0;
+    font-weight: 600;
+    color: #64748B;
+    font-size: 12px;
+    text-align: left;
 }
 
 /* Progress Bar in Tables */
 QProgressBar {
     border: none;
-    background-color: #F1F3F5;
-    border-radius: 4px;
+    background-color: #F1F5F9;
+    border-radius: 6px;
     text-align: center;
     font-size: 9px;
-    font-weight: bold;
-    color: transparent; /* Text inside bar is often messy in tables */
+    font-weight: 600;
+    color: transparent;
 }
 
 QProgressBar::chunk {
-    border-radius: 4px;
+    border-radius: 6px;
+    background-color: #0D6EFD;
 }
 
 /* Form Elements */
 QLineEdit {
     padding: 10px 14px;
-    border: 1px solid #DEE2E6;
+    border: 1px solid #E2E8F0;
     border-radius: 6px;
     background: #FFFFFF;
     selection-background-color: #0D6EFD;
+    font-size: 13px;
+    color: #1A1A1A;
 }
 
 QLineEdit:focus {
-    border: 1px solid #0D6EFD;
+    border: 2px solid #0D6EFD;
+    padding: 9px 13px;
+}
+
+QLineEdit:hover {
+    border: 1px solid #CBD5E1;
 }
 
 QRadioButton {
     spacing: 8px;
-    color: #495057;
+    color: #475569;
+    font-size: 13px;
 }
 
 QRadioButton::indicator {
@@ -133,18 +228,37 @@ QRadioButton::indicator {
     height: 18px;
 }
 
+/* Buttons */
+QPushButton#browse_btn {
+    background-color: #0D6EFD;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+QPushButton#browse_btn:hover {
+    background-color: #0B5BDB;
+}
+
+QPushButton#browse_btn:pressed {
+    background-color: #0A4FB8;
+}
+
 /* ScrollBars */
 QScrollBar:vertical {
     border: none;
     background: transparent;
-    width: 6px;
+    width: 8px;
     margin: 0px;
 }
 
 QScrollBar::handle:vertical {
-    background: #E9ECEF;
+    background: #CBD5E1;
     min-height: 20px;
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 QScrollBar::handle:vertical:hover {
@@ -175,44 +289,109 @@ QLabel.dashboard-link:hover {
 
 /* Action Card Sub-Frame */
 QFrame#select_folder_frame {
-    background-color: #F8F9FA;
-    border: 1px solid #E9ECEF;
-    border-radius: 10px;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
     padding: 20px;
 }
 
 QLabel#select_path_label {
     background-color: #FFFFFF;
-    border: 1px solid #DEE2E6;
-    border-radius: 6px;
-    padding: 10px;
-    font-family: "Consolas", monospace;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: "Consolas", "SF Mono", monospace;
     font-size: 13px;
-    color: #495057;
+    color: #475569;
 }
 
 /* Results Available Section */
 QLabel#results_title {
     font-size: 24px;
-    font-weight: bold;
-    color: #212529;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+}
+
+QLabel#results_subtitle {
+    font-size: 13px;
+    color: #94A3B8;
+    font-weight: 400;
+    margin-bottom: 4px;
+    background-color: transparent;
 }
 
 QLabel#results_count_badge {
-    background-color: #F1F3F5;
-    color: #495057;
-    padding: 4px 12px;
-    border-radius: 12px;
+    background-color: #EEF2FF;
+    color: #0D6EFD;
+    padding: 3px 10px;
+    border-radius: 10px;
     font-size: 12px;
     font-weight: 600;
 }
 
 /* PID Search Bar */
 QLineEdit#pid_search_bar {
-    background-color: #F8F9FA;
-    border: 1px solid #E9ECEF;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #475569;
+}
+
+QLineEdit#pid_search_bar:focus {
+    border: 1.5px solid #0D6EFD;
+    background-color: #FFFFFF;
+}
+
+/* PID Result Cards */
+QFrame#pid_result_card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+}
+
+QFrame#pid_result_card:hover {
+    border: 1px solid #0D6EFD;
+    background-color: #F8FAFF;
+}
+
+QLabel#pid_card_icon {
+    background-color: #FEF3C7;
     border-radius: 8px;
-    padding: 10px 15px;
+    font-size: 16px;
+    color: #D97706;
+}
+
+QLabel#pid_card_title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1E293B;
+    background-color: transparent;
+}
+
+QLabel#pid_card_date {
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 400;
+    background-color: transparent;
+}
+
+QLabel#pid_card_arrow {
+    font-size: 20px;
+    color: #CBD5E1;
+    font-weight: 300;
+    background-color: transparent;
+}
+
+QWidget#results_cards_container {
+    background-color: transparent;
+}
+
+QScrollArea#results_scroll {
+    border: none;
+    background-color: transparent;
 }
 
 /* View Details Button in Table */
@@ -468,39 +647,50 @@ QScrollArea#transparent_scroll {
     background-color: transparent;
 }
 
-QTableWidget#pid_results_table {
-    border: 1px solid #E0E0E0;
-    border-radius: 4px;
-    background-color: white;
-    alternate-background-color: #FAFAFA;
-    selection-background-color: #E3F2FD;
-    selection-color: #1565C0;
+/* Recent Section Title */
+QLabel#recent_section_title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 0px;
 }
 
-QTableWidget#pid_results_table::item {
-    padding: 12px;
-    border-bottom: 1px solid #F0F0F0;
-    color: #424242;
+QLabel#recent_section_subtitle {
+    font-size: 13px;
+    font-weight: 400;
+    color: #94A3B8;
+    margin-bottom: 4px;
 }
 
-QTableWidget#pid_results_table::item:selected {
-    background-color: #E3F2FD;
-    color: #1565C0;
+/* Recent Folders Empty State */
+QWidget#recent_empty_state {
+    background-color: #F8FAFC;
+    border: 2px dashed #CBD5E1;
+    border-radius: 12px;
+}
+
+QLabel#empty_state_icon {
+    font-size: 40px;
+    color: #94A3B8;
+    background: transparent;
+    border: none;
+}
+
+QLabel#empty_state_title {
+    font-size: 15px;
     font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: none;
 }
 
-QTableWidget#pid_results_table::item:focus {
+QLabel#empty_state_desc {
+    font-size: 13px;
+    font-weight: 400;
+    color: #94A3B8;
+    background: transparent;
     border: none;
-    outline: none;
-}
-
-QTableWidget#pid_results_table QHeaderView::section {
-    background-color: white;
-    padding: 8px;
-    border: none;
-    border-bottom: 2px solid #EEEEEE;
-    font-weight: bold;
-    color: #616161;
+    line-height: 1.5;
 }
 
 QTreeWidget#hierarchy_tree {

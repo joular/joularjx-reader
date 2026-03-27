@@ -11,7 +11,12 @@ from .method_table import MethodTable
 from .consumption_graph import ConsumptionGraphDialog
 
 class MetricsPanel(QWidget):
-    
+    """Horizontal strip showing Total / Average / Max / Min energy metrics.
+
+    Displayed in the header row of the Analysis page and updated whenever
+    the set of visible method curves changes.
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
@@ -21,6 +26,7 @@ class MetricsPanel(QWidget):
         layout.setContentsMargins(0, 5, 0, 5)
         layout.setSpacing(0)
         
+        # Rounded container that groups all metric tiles
         self.container = QWidget()
         self.container.setObjectName("metrics_unified_container")
         
@@ -28,6 +34,7 @@ class MetricsPanel(QWidget):
         self.container_layout.setContentsMargins(15, 8, 15, 8)
         self.container_layout.setSpacing(20)
         
+        # Metric tiles separated by vertical lines
         self.total_label = self._add_metric("Total", "0 J", "total")
         self._add_separator()
         self.avg_label = self._add_metric("Average", "0 J", "avg")
@@ -76,7 +83,13 @@ class MetricsPanel(QWidget):
 
 
 class AnalysisPage(QWidget):
-    
+    """Full-page widget for the Method Analysis view.
+
+    Combines an interactive energy-consumption graph, a metrics summary
+    panel, a search / filter bar, and a sortable method table with
+    per-method toggle checkboxes.
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
@@ -90,6 +103,8 @@ class AnalysisPage(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
+
+        # Header — page title + metrics summary strip
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 0)
         
@@ -102,8 +117,11 @@ class AnalysisPage(QWidget):
         header_layout.addWidget(self.metrics_panel, stretch=1)
         layout.addLayout(header_layout)
         
+        # Interactive consumption graph
         self.graph = InteractiveGraphWidget()
         layout.addWidget(self.graph, stretch=1)
+
+        # Search + filter controls
         controls = QHBoxLayout()
         self.search_box = QLineEdit()
         self.search_box.setPlaceholderText("Search method...")
@@ -120,6 +138,7 @@ class AnalysisPage(QWidget):
         controls.addWidget(self.all_radio)
         layout.addLayout(controls)
         
+        # Method table — checkboxes control graph visibility
         self.table = MethodTable()
         self.table.enable_checkbox_mode()
         self.table.method_toggled.connect(self.on_method_toggled)
@@ -140,12 +159,15 @@ class AnalysisPage(QWidget):
             methods.extend(m_list)
         
         self.graph.clear_all()
+        # Sort by descending energy share so the most impactful methods appear first
         methods.sort(key=lambda x: x.percentage, reverse=True)
         self.current_methods = methods
         
         self._assign_colors()
         self._load_total_evolution()
         self.table.update_methods(methods, self.method_colors)
+
+        # Register each method's time series with the graph
         for method in methods:
             if method.consumption_evolution:
                 timestamps = [p.timestamp for p in method.consumption_evolution]
@@ -153,6 +175,7 @@ class AnalysisPage(QWidget):
                 color = self.method_colors.get(method.name, (100, 100, 100))
                 self.graph.add_method_data(method.name, timestamps, consumptions, color)
         
+        # Show the aggregated total curve by default
         self.on_method_toggled("TOTAL", True)
         self.graph.update_bounds()
         

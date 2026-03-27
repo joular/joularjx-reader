@@ -1,8 +1,9 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                             QPushButton, QFrame, QScrollArea, QLineEdit, QTableWidget, 
-                            QTableWidgetItem, QHeaderView, QAbstractItemView, QSizePolicy)
+                            QTableWidgetItem, QHeaderView, QAbstractItemView, QSizePolicy,
+                            QGraphicsDropShadowEffect)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QColor, QFont
 import sys
 from utils.path_utils import PathUtils
 from utils.style_utils import get_title_style, get_description_style, get_separator_style, get_help_text_style, get_icon_style
@@ -51,6 +52,7 @@ class DashboardWidget(QWidget):
         self.left_layout.setContentsMargins(0, 0, 0, 0)
         self.setup_action_card()
         self.content_layout.addWidget(self.left_column, stretch=40)
+        self.left_column.setMinimumWidth(380)
         
         # Right Column
         self.right_column = QWidget()
@@ -199,49 +201,54 @@ class DashboardWidget(QWidget):
         self.results_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         results_layout = QVBoxLayout(self.results_widget)
         results_layout.setContentsMargins(0, 0, 0, 0)
-        results_layout.setSpacing(20)
+        results_layout.setSpacing(12)
         
         # Title Row
         title_row = QHBoxLayout()
         title_label = QLabel("Available Results")
         title_label.setObjectName("results_title")
         
-        self.count_badge = QLabel("0 résultats")
+        self.count_badge = QLabel("0")
         self.count_badge.setObjectName("results_count_badge")
         
         title_row.addWidget(title_label)
-        title_row.addSpacing(15)
+        title_row.addSpacing(10)
         title_row.addWidget(self.count_badge)
         title_row.addStretch()
         
-        # Search Bar
+        results_layout.addLayout(title_row)
+        
+        # Subtitle
+        subtitle = QLabel("Select an analysis to view detailed results")
+        subtitle.setObjectName("results_subtitle")
+        results_layout.addWidget(subtitle)
+        
+        # Search Bar with icon
+        search_container = QHBoxLayout()
+        search_container.setSpacing(0)
         self.search_bar = QLineEdit()
         self.search_bar.setObjectName("pid_search_bar")
-        self.search_bar.setPlaceholderText("Search PID...")
+        self.search_bar.setPlaceholderText("🔍  Search by PID...")
         self.search_bar.textChanged.connect(self.filter_results)
+        search_container.addWidget(self.search_bar)
+        results_layout.addLayout(search_container)
         
-        # Results Table
-        self.results_table = TableBaseClass()
-        self.results_table.setColumnCount(2)
-        self.results_table.setHorizontalHeaderLabels(["PID", "date"])
-        self.results_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.results_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.results_table.setShowGrid(False)
-        self.results_table.verticalHeader().setVisible(False)
-        self.results_table.setAlternatingRowColors(True)
-        self.results_table.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.results_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.results_table.cellClicked.connect(self.on_row_clicked)
-        self.results_table.setObjectName("pid_results_table")
+        # Scrollable cards area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setObjectName("results_scroll")
         
-        header = self.results_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.results_cards_container = QWidget()
+        self.results_cards_container.setObjectName("results_cards_container")
+        self.results_cards_layout = QVBoxLayout(self.results_cards_container)
+        self.results_cards_layout.setContentsMargins(0, 0, 4, 0)
+        self.results_cards_layout.setSpacing(8)
+        self.results_cards_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
-        results_layout.addLayout(title_row)
-        results_layout.addWidget(self.search_bar)
-        results_layout.addWidget(self.results_table)
+        scroll.setWidget(self.results_cards_container)
+        results_layout.addWidget(scroll)
         
         self.right_layout.addWidget(self.results_widget)
         
@@ -250,17 +257,22 @@ class DashboardWidget(QWidget):
         self.recent_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         recent_layout_v = QVBoxLayout(self.recent_widget)
         recent_layout_v.setContentsMargins(0, 0, 0, 0)
-        recent_layout_v.setSpacing(15)
+        recent_layout_v.setSpacing(12)
         
+        # Header row with title and subtitle
         recent_header = QLabel("Recent Folders")
         recent_header.setObjectName("recent_section_title")
         recent_layout_v.addWidget(recent_header)
+        
+        recent_subtitle = QLabel("Pick up where you left off")
+        recent_subtitle.setObjectName("recent_section_subtitle")
+        recent_layout_v.addWidget(recent_subtitle)
         
         self.recent_container = QWidget()
         self.recent_layout = QVBoxLayout(self.recent_container)
         self.recent_layout.setContentsMargins(0, 0, 0, 0)
         self.recent_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.recent_layout.setSpacing(10)
+        self.recent_layout.setSpacing(8)
 
         recent_layout_v.addWidget(self.recent_container)
         recent_layout_v.addStretch()
@@ -272,40 +284,88 @@ class DashboardWidget(QWidget):
         self.recent_widget.setVisible(not visible)
 
     def update_results(self, pids_info):
-        """ Populate the results table. pids_info: list of (pid, date, full_path) """
-        self.results_table.setRowCount(0)
+        """ Populate the results with styled cards. pids_info: list of (pid, date, full_path) """
+        # Clear existing cards
+        while self.results_cards_layout.count():
+            item = self.results_cards_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
         self.all_results = pids_info
-        self.count_badge.setText(f"{len(pids_info)} results")
+        self.count_badge.setText(f"{len(pids_info)} result{'s' if len(pids_info) != 1 else ''}")
         
-        for row, info in enumerate(pids_info):
-            self.add_result_row(row, info)
+        for info in pids_info:
+            card = self._create_result_card(info)
+            self.results_cards_layout.addWidget(card)
+    
+    def _create_result_card(self, info):
+        """Create a styled card for a PID result."""
+        pid, date, full_path = info
         
+        card = QFrame()
+        card.setObjectName("pid_result_card")
+        card.setCursor(Qt.CursorShape.PointingHandCursor)
+        card.setProperty("full_path", full_path)
+        
+        card_layout = QHBoxLayout(card)
+        card_layout.setContentsMargins(14, 12, 14, 12)
+        card_layout.setSpacing(12)
+        
+        # PID icon/badge
+        pid_icon = QLabel("⚡")
+        pid_icon.setObjectName("pid_card_icon")
+        pid_icon.setFixedSize(36, 36)
+        pid_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(pid_icon)
+        
+        # Info column
+        info_layout = QVBoxLayout()
+        info_layout.setSpacing(2)
+        info_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Extract just the PID number for a cleaner display
+        pid_display = pid.split('-')[0] if '-' in pid else pid
+        pid_label = QLabel(f"PID {pid_display}")
+        pid_label.setObjectName("pid_card_title")
+        
+        date_label = QLabel(date)
+        date_label.setObjectName("pid_card_date")
+        
+        info_layout.addWidget(pid_label)
+        info_layout.addWidget(date_label)
+        card_layout.addLayout(info_layout, stretch=1)
+        
+        # Arrow indicator
+        arrow = QLabel("›")
+        arrow.setObjectName("pid_card_arrow")
+        arrow.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(arrow)
+        
+        # Make the card clickable via mouse press event
+        card.mousePressEvent = lambda event, path=full_path: self.pid_selected.emit(path)
+        
+        return card
 
     def add_result_row(self, row, info):
-        pid, date, full_path = info
-        self.results_table.insertRow(row)
-        
-        pid_item = QTableWidgetItem(pid)
-        # Store full path in UserRole for easy access
-        pid_item.setData(Qt.ItemDataRole.UserRole, full_path)
-        self.results_table.setItem(row, 0, pid_item)
-        
-        date_item = QTableWidgetItem(date)
-        date_item.setData(Qt.ItemDataRole.UserRole, full_path)
-        self.results_table.setItem(row, 1, date_item)
+        """Legacy compatibility - redirects to card creation."""
+        pass
 
     def on_row_clicked(self, row, column):
-        """Handle row click to select PID."""
-        item = self.results_table.item(row, 0)
-        if item:
-            full_path = item.data(Qt.ItemDataRole.UserRole)
-            if full_path:
-                self.pid_selected.emit(full_path)
+        """Legacy compatibility."""
+        pass
 
     def filter_results(self, text):
-        for row in range(self.results_table.rowCount()):
-            pid = self.results_table.item(row, 0).text()
-            self.results_table.setRowHidden(row, text.lower() not in pid.lower())
+        for i in range(self.results_cards_layout.count()):
+            widget = self.results_cards_layout.itemAt(i).widget()
+            if widget:
+                # Search in the PID title label
+                labels = widget.findChildren(QLabel)
+                pid_text = ""
+                for label in labels:
+                    if label.objectName() == "pid_card_title":
+                        pid_text = label.text()
+                        break
+                widget.setVisible(text.lower() in pid_text.lower())
 
     def update_pid_label(self, pid):
         pass

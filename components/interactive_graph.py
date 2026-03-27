@@ -5,7 +5,14 @@ from utils.style_constants import GRAPH_STYLE, TOTAL_COLOR
 
 
 class InteractiveGraphWidget(QWidget):
-    
+    """Zoomable / pannable line graph for energy-consumption time series.
+
+    Wraps a ``pyqtgraph`` plot with:
+    - A vertical + horizontal crosshair that follows the mouse.
+    - A floating tooltip showing the consumption value(s) at the cursor X.
+    - Per-method and aggregate "Total" curve management.
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
@@ -20,6 +27,7 @@ class InteractiveGraphWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         
+        # pyqtgraph canvas
         self.graphics_widget = pg.GraphicsLayoutWidget()
         self.graphics_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.graphics_widget.setBackground(GRAPH_STYLE['background'])
@@ -29,6 +37,7 @@ class InteractiveGraphWidget(QWidget):
         
         layout.addWidget(self.graphics_widget)
         
+        # Main plot — axes, grid, title
         self.main_plot = self.graphics_widget.addPlot(row=0, col=0)
         self.main_plot.setLabel('left', 'Consumption (J)', **{'font-size': GRAPH_STYLE['font_size'], 'color': GRAPH_STYLE['axis_color']})
         self.main_plot.setLabel('bottom', 'Timestamp', **{'font-size': GRAPH_STYLE['font_size'], 'color': GRAPH_STYLE['axis_color']})
@@ -40,11 +49,13 @@ class InteractiveGraphWidget(QWidget):
         self.main_plot.enableAutoRange()
         self.main_plot.setMouseEnabled(x=True, y=True)
         
+        # Crosshair lines (vertical + horizontal dashed lines following the cursor)
         self.vLine = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen(GRAPH_STYLE['crosshair_color'], width=GRAPH_STYLE['axis_width'], style=pg.QtCore.Qt.PenStyle.DashLine))
         self.hLine = pg.InfiniteLine(angle=0, movable=False, pen=pg.mkPen(GRAPH_STYLE['crosshair_color'], width=GRAPH_STYLE['axis_width'], style=pg.QtCore.Qt.PenStyle.DashLine))
         self.main_plot.addItem(self.vLine, ignoreBounds=True)
         self.main_plot.addItem(self.hLine, ignoreBounds=True)
         
+        # Floating tooltip label shown near the cursor
         self.value_label = pg.TextItem(
             anchor=(0, 1), 
             color=GRAPH_STYLE['title_color'],
@@ -53,6 +64,7 @@ class InteractiveGraphWidget(QWidget):
         )
         self.main_plot.addItem(self.value_label)
         
+        # Connect mouse movement to crosshair / tooltip updates
         self.main_plot.scene().sigMouseMoved.connect(self.mouse_moved)
         
         self.plot_items = {}
@@ -171,6 +183,8 @@ class InteractiveGraphWidget(QWidget):
         if len(timestamps) == 0:
             return None
         
+        # Find the nearest sample; only return it when it's within 5 % of the
+        # total time range to avoid showing values far from the cursor.
         idx = np.argmin(np.abs(timestamps - x))
         
         if abs(timestamps[idx] - x) < (timestamps[-1] - timestamps[0]) * 0.05:
@@ -188,6 +202,7 @@ class InteractiveGraphWidget(QWidget):
         self.visible_methods.clear()
 
     def update_bounds(self):
+        """Fit the view to the union of all registered data series."""
         min_x, max_x = float('inf'), float('-inf')
         min_y, max_y = float('inf'), float('-inf')
         has_data = False
@@ -211,7 +226,8 @@ class InteractiveGraphWidget(QWidget):
                 
         if not has_data:
             return
-            
+        
+        # Add small margins so the curves don't touch the axes
         x_margin = (max_x - min_x) * 0.05 if max_x != min_x else 1.0
         y_margin = (max_y - min_y) * 0.1 if max_y != min_y else 1.0
         
