@@ -1,15 +1,9 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                            QPushButton, QFrame, QScrollArea, QLineEdit, QTableWidget, 
-                            QTableWidgetItem, QHeaderView, QAbstractItemView, QSizePolicy,
-                            QGraphicsDropShadowEffect)
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+                            QPushButton, QFrame, QScrollArea, QLineEdit, QSizePolicy)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QIcon, QColor, QFont
-import sys
+from PyQt6.QtGui import QIcon
 from utils.path_utils import PathUtils
-from utils.style_utils import get_title_style, get_description_style, get_separator_style, get_help_text_style, get_icon_style
-from utils.os_config import OSConfig
-
-TableBaseClass = OSConfig.get_table_widget_class()
+from utils.style_utils import get_separator_style, get_icon_style
 
 
 class DashboardWidget(QWidget):
