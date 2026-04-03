@@ -2,7 +2,6 @@ from PyQt6.QtWidgets import (QTableWidget, QTableWidgetItem, QHeaderView,
                             QProgressBar, QWidget, QHBoxLayout, QAbstractItemView)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
-import pyqtgraph as pg
 import numpy as np
 
 from ui.widgets import CheckBox, TableWidget
@@ -137,11 +136,6 @@ class MethodTable(TableWidget):
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(["In graph", "Color", "Method", "Consumption", "Average", "Percentage"])
         self._configure_headers()
-        # Center align the numeric column headers
-        header = self.horizontalHeader()
-        for col in [3, 4, 5]:  # Consumption, Average, Percentage
-            item = self.model().headerData(col, Qt.Orientation.Horizontal)
-            header.model().setHeaderData(col, Qt.Orientation.Horizontal, item, Qt.ItemDataRole.DisplayRole)
         
     def update_methods(self, methods, colors=None):
         """Update the table with new methods data."""
@@ -331,41 +325,30 @@ class MethodTable(TableWidget):
             col_offset += 1
             
             # Percentage column
-            if self.checkbox_mode:
-                percentage_text = f"{method.percentage:.2f}%"
-                percentage_item = QTableWidgetItem(percentage_text)
-                percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                percentage_item.setFont(QFont("Arial", 12))
-                self.setItem(row, col_offset, percentage_item)
-            else:
-                # Original percentage item
-                percentage_text = f"{method.percentage:.2f}%"
-                percentage_item = QTableWidgetItem(percentage_text)
-                percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                percentage_item.setFont(QFont("Arial", 12))
-                self.setItem(row, col_offset, percentage_item)
+            percentage_item = QTableWidgetItem(f"{method.percentage:.2f}%")
+            percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+            percentage_item.setFont(QFont("Arial", 12))
+            self.setItem(row, col_offset, percentage_item)
+
+            if not self.checkbox_mode:
                 col_offset += 1
-                
+
                 # Progress bar column
-                progress_bar = QProgressBar()
                 percentage_value = int(method.percentage)
+                progress_bar = QProgressBar()
                 progress_bar.setValue(percentage_value)
                 progress_bar.setMaximum(100)
                 progress_bar.setFixedHeight(10)
-                
-                bar_color = get_progress_color(percentage_value)
-                progress_bar.setStyleSheet(get_progress_bar_style(bar_color))
+                progress_bar.setStyleSheet(get_progress_bar_style(get_progress_color(percentage_value)))
                 progress_bar.setTextVisible(False)
-                
+
                 progress_widget = QWidget()
                 progress_layout = QHBoxLayout(progress_widget)
                 progress_layout.setContentsMargins(0, 0, 0, 0)
                 progress_layout.setSpacing(0)
                 progress_layout.addWidget(progress_bar)
                 progress_widget.setStyleSheet(get_progress_wrapper_style("transparent"))
-                
                 self.setCellWidget(row, col_offset, progress_widget)
             
     def filter_methods(self, text):

@@ -6,9 +6,7 @@ from PyQt6.QtGui import QFont, QColor
 import pyqtgraph as pg
 from ui.widgets import RadioButton
 from utils.os_config import OSConfig
-from utils.style_utils import (get_metric_label_style, get_legend_box_style, get_legend_text_style,
-                              get_node_card_style, get_chevron_style, get_node_label_style,
-                              get_metric_card_container_style)
+from utils.style_utils import (get_chevron_style,)
 
 
 class TreeNode:
@@ -260,38 +258,6 @@ class CallTreeCardInterface(QWidget):
             return full_name.split('.')[-1]
         return full_name
     
-    
-    def create_intensity_legend(self):
-        """Create the intensity legend."""
-        container = QWidget()
-        layout = QHBoxLayout(container)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(15)
-        
-        title = QLabel("Consumption Intensity:")
-        title.setStyleSheet(get_metric_label_style('dialog_title'))
-        layout.addWidget(title)
-        
-        intensities = [
-            ("< 20%", "#f5f5f5"),
-            ("20-40%", "#BBDEFB"),
-            ("40-60%", "#FFF9C4"),
-            ("60-80%", "#FFD180"),
-            ("> 80%", "#FFCDD2")
-        ]
-        
-        for label, color in intensities:
-            box = QLabel()
-            box.setFixedSize(70, 24)
-            box.setStyleSheet(get_legend_box_style(color))
-            layout.addWidget(box)
-            
-            text = QLabel(label)
-            text.setStyleSheet(get_legend_text_style())
-            layout.addWidget(text)
-        
-        layout.addStretch()
-        return container
     
     def get_consumption_color(self, percentage):
         """Get background color based on consumption percentage."""
@@ -820,16 +786,6 @@ class CallTreeCardInterface(QWidget):
                         parent.setHidden(False)
                         parent.setExpanded(True)
                         parent = parent.parent()
-
-    def _show_subtree(self, item):
-        """Recursively show item and its children."""
-        item.setHidden(False)
-        for i in range(item.childCount()):
-            self._show_subtree(item.child(i))
-
-    def filter_items(self, text):
-        """Alias for compatibility."""
-        self.filter_tree(text)
 
     def collapse_all_nodes(self):
         """Toggle between collapsing and expanding all nodes in the tree."""

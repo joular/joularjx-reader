@@ -346,14 +346,6 @@ class DashboardWidget(QWidget):
         
         return card
 
-    def add_result_row(self, row, info):
-        """Legacy compatibility - redirects to card creation."""
-        pass
-
-    def on_row_clicked(self, row, column):
-        """Legacy compatibility."""
-        pass
-
     def filter_results(self, text):
         for i in range(self.results_cards_layout.count()):
             widget = self.results_cards_layout.itemAt(i).widget()

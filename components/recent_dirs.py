@@ -172,29 +172,11 @@ class RecentDirectories:
     def handle_directory_click(self, directory: str):
         """Handle click on a recent directory card."""
         try:
-            # Check if the directory is already loaded
             if self.parent and hasattr(self.parent, 'current_path') and self.parent.current_path == directory:
-                QMessageBox.information(
-                    self.parent,
-                    "Directory Already Loaded",
-                    f"The directory '{directory}' is already loaded.",
-                    QMessageBox.StandardButton.Ok
-                )
                 return
-
-            # Ask user if they want to load the directory
-            reply = QMessageBox.question(
-                self.parent,
-                'Load Directory',
-                f'Do you want to load the directory:\n{directory}?',
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-
-            if reply == QMessageBox.StandardButton.Yes:
-                self.dir_history.add_directory(directory)
-                if self.parent:
-                    self.parent.load_directory(directory)
+            self.dir_history.add_directory(directory)
+            if self.parent:
+                self.parent.load_directory(directory)
         except Exception as e:
             ErrorHandler.show_error(
                 self.parent,

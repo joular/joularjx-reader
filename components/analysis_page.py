@@ -181,11 +181,11 @@ class AnalysisPage(QWidget):
         
     def _assign_colors(self):
         self.method_colors.clear()
-        
+
         for idx, method in enumerate(self.current_methods[:10]):
             self.method_colors[method.name] = METHOD_COLORS[idx % len(METHOD_COLORS)]
-        for method in self.current_methods[10:]:
-            grey_val = 100 + (idx % 5) * 30
+        for grey_idx, method in enumerate(self.current_methods[10:]):
+            grey_val = 100 + (grey_idx % 5) * 30
             self.method_colors[method.name] = (grey_val, grey_val, grey_val)
     
     def _load_total_evolution(self):

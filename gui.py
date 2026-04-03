@@ -121,7 +121,7 @@ class MainWindow(BaseWindowClass):
             self.setMinimumSize(960, 640)
         else:
             self.resize(1015, 650)
-            self.setMinimumSize(1045, 680)
+            self.setMinimumSize(960, 600)
             
         self.setWindowIcon(QIcon(PathUtils.get_resource_path('ui/img/logo.png')))
         

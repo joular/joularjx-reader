@@ -64,7 +64,7 @@ class OSConfig:
     @classmethod
     def get_window_class(cls) -> Type:
         from PyQt6.QtWidgets import QMainWindow
-        
+
         if cls.is_windows() or cls.is_macos():
             try:
                 from qfluentwidgets import FluentWindow
@@ -72,15 +72,7 @@ class OSConfig:
             except ImportError:
                 print("[OSConfig] qfluentwidgets not available, falling back to QMainWindow")
                 return QMainWindow
-                 
-        if cls.is_macos():
-            try:
-                from qframelesswindow import FramelessWindow
-                return FramelessWindow
-            except ImportError:
-                 print("[OSConfig] qframelesswindow not available, falling back to QMainWindow")
-                 return QMainWindow
-        
+
         return QMainWindow
     
     @classmethod
