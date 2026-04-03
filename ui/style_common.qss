@@ -1,0 +1,738 @@
+/* Global stylesheet for JoularJX Reader (Light Theme) */
+
+/* General Styles */
+QWidget {
+    background-color: #FFFFFF;
+    color: #1A1A1A;
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+    font-size: 10pt;
+}
+
+/* Sidebar Styles */
+QWidget#sidebar {
+    background-color: #F5F7FA;
+    border-right: 1px solid #E0E3E8;
+}
+
+QLabel#sidebar_title {
+    font-weight: 600;
+    font-size: 18px;
+    color: #1A1A1A;
+    padding: 20px;
+}
+
+QPushButton.nav-button {
+    background-color: transparent;
+    text-align: left;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #6B7280;
+    margin: 4px 12px;
+    font-weight: 500;
+}
+
+QPushButton.nav-button:hover {
+    background-color: #EEF2F5;
+    color: #1A1A1A;
+}
+
+QPushButton.nav-button:checked {
+    background-color: #DCE8F5;
+    color: #0D6EFD;
+    font-weight: 600;
+}
+
+QPushButton.nav-button:disabled {
+    color: #D1D5DB;
+    background-color: transparent;
+}
+
+QPushButton.nav-button[collapsed="true"] {
+    text-align: center;
+    padding: 12px 0px;
+}
+
+/* Dashboard Styles */
+QWidget#dashboard {
+    background-color: #FAFBFC;
+}
+
+QLabel#dashboard_title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+}
+
+QLabel#dashboard_subtitle {
+    font-size: 15px;
+    color: #64748B;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+QFrame#action_card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 8px;
+}
+
+QFrame#action_card:hover {
+    border: 1px solid #94A3B8;
+    background-color: #FAFBFC;
+}
+
+/* Title Hero in Card */
+QLabel#title_hero {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+}
+
+/* Description text */
+QLabel#description {
+    font-size: 14px;
+    color: #64748B;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+/* Help text */
+QLabel#help_text {
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 400;
+}
+
+/* Section titles */
+QLabel#section_title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+/* Path label */
+QLabel#select_path_label {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+    padding: 8px 12px;
+    background-color: #F1F5F9;
+    border-radius: 6px;
+}
+
+/* Table Styles */
+QTableWidget {
+    background-color: #FFFFFF;
+    gridline-color: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    selection-background-color: #DCE8F5;
+    selection-color: #0D6EFD;
+    outline: none;
+    font-size: 13px;
+}
+
+QTableWidget::item {
+    padding: 10px 12px;
+    color: #475569;
+}
+
+QTableWidget::item:selected {
+    background-color: #DCE8F5;
+    color: #0D6EFD;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #B8C2CE;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator:hover {
+    border: 1px solid #0D6EFD;
+    background-color: #F8FAFF;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator:checked {
+    border: 1px solid #0D6EFD;
+    background-color: #0D6EFD;
+}
+
+QTableWidget QCheckBox#in_graph_checkbox::indicator:disabled {
+    border: 1px solid #D1D5DB;
+    background-color: #F1F5F9;
+}
+
+QHeaderView::section {
+    background-color: #F8FAFC;
+    padding: 12px 12px;
+    border: none;
+    border-bottom: 1px solid #E2E8F0;
+    font-weight: 600;
+    color: #64748B;
+    font-size: 12px;
+    text-align: left;
+}
+
+/* Progress Bar in Tables */
+QProgressBar {
+    border: none;
+    background-color: #F1F5F9;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 600;
+    color: transparent;
+}
+
+QProgressBar::chunk {
+    border-radius: 6px;
+    background-color: #0D6EFD;
+}
+
+/* Form Elements */
+QLineEdit {
+    padding: 10px 14px;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    background: #FFFFFF;
+    selection-background-color: #0D6EFD;
+    font-size: 13px;
+    color: #1A1A1A;
+}
+
+QLineEdit:focus {
+    border: 2px solid #0D6EFD;
+    padding: 9px 13px;
+}
+
+QLineEdit:hover {
+    border: 1px solid #CBD5E1;
+}
+
+QRadioButton {
+    spacing: 8px;
+    color: #475569;
+    font-size: 13px;
+}
+
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+}
+
+/* Buttons */
+QPushButton#browse_btn {
+    background-color: #0D6EFD;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+QPushButton#browse_btn:hover {
+    background-color: #0B5BDB;
+}
+
+QPushButton#browse_btn:pressed {
+    background-color: #0A4FB8;
+}
+
+/* ScrollBars */
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 8px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #CBD5E1;
+    min-height: 20px;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #DEE2E6;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+    background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+
+/* Dashboard Section Links */
+QLabel.dashboard-link {
+    color: #6C757D;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QLabel.dashboard-link:hover {
+    color: #0D6EFD;
+    text-decoration: underline;
+}
+
+/* Action Card Sub-Frame */
+QFrame#select_folder_frame {
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+QLabel#select_path_label {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: "Consolas", "SF Mono", monospace;
+    font-size: 13px;
+    color: #475569;
+}
+
+/* Results Available Section */
+QLabel#results_title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+}
+
+QLabel#results_subtitle {
+    font-size: 13px;
+    color: #94A3B8;
+    font-weight: 400;
+    margin-bottom: 4px;
+    background-color: transparent;
+}
+
+QLabel#results_count_badge {
+    background-color: #EEF2FF;
+    color: #0D6EFD;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* PID Search Bar */
+QLineEdit#pid_search_bar {
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #475569;
+}
+
+QLineEdit#pid_search_bar:focus {
+    border: 1.5px solid #0D6EFD;
+    background-color: #FFFFFF;
+}
+
+/* PID Result Cards */
+QFrame#pid_result_card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+}
+
+QFrame#pid_result_card:hover {
+    border: 1px solid #0D6EFD;
+    background-color: #F8FAFF;
+}
+
+QLabel#pid_card_icon {
+    background-color: #FEF3C7;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #D97706;
+}
+
+QLabel#pid_card_title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1E293B;
+    background-color: transparent;
+}
+
+QLabel#pid_card_date {
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 400;
+    background-color: transparent;
+}
+
+QLabel#pid_card_arrow {
+    font-size: 20px;
+    color: #CBD5E1;
+    font-weight: 300;
+    background-color: transparent;
+}
+
+QWidget#results_cards_container {
+    background-color: transparent;
+}
+
+QScrollArea#results_scroll {
+    border: none;
+    background-color: transparent;
+}
+
+/* View Details Button in Table */
+QPushButton#view_details_btn {
+    background-color: transparent;
+    color: #0D6EFD;
+    border: none;
+    font-weight: 600;
+    text-align: right;
+    padding-right: 15px;
+}
+
+QPushButton#view_details_btn:hover {
+    color: #0B5ED7;
+    text-decoration: underline;
+}
+
+QPushButton#browse_btn {
+    background-color: #0D6EFD;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+QPushButton#browse_btn:hover {
+    background-color: #0B5ED7;
+}
+
+/* Header Add Button (Pill style) */
+QPushButton#header_add_btn {
+    background-color: #F8F9FA;
+    border: 1px solid #DEE2E6;
+    color: #495057;
+    border-radius: 18px;
+    padding: 0 15px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+QPushButton#header_add_btn:hover {
+    background-color: #E9ECEF;
+    border: 1px solid #0D6EFD;
+    color: #0D6EFD;
+}
+
+QPushButton#header_add_btn:pressed {
+    background-color: #DEE2E6;
+}
+
+/* Recent Cards */
+QWidget#recent_card {
+    background-color: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 8px;
+    min-width: 160px;
+    max-width: 220px;
+}
+
+QWidget#recent_card:hover {
+    border: 1px solid #0D6EFD;
+    background-color: #F8F9FA;
+}
+
+QPushButton#delete_btn {
+    background-color: #DC3545;
+    border: none;
+    border-radius: 9px;
+}
+
+QPushButton#delete_btn:hover {
+    background-color: #BB2D3B;
+}
+
+QLabel#recent_name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #212529;
+}
+
+QLabel#recent_date {
+    font-size: 11px;
+    color: #6C757D;
+}
+
+QLabel#recent_pid_badge {
+    background-color: #E7F1FF;
+    color: #0D6EFD;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+QLabel#page_title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #212529;
+    padding-bottom: 10px;
+}
+
+QWidget#metrics_panel {
+    background-color: transparent;
+}
+
+QWidget#metrics_unified_container {
+    background-color: #F8F9FA;
+    border: 1px solid #DEE2E6;
+    border-radius: 8px;
+}
+
+QWidget#metric_wrapper {
+    background-color: transparent;
+}
+
+QFrame#metric_separator {
+    color: #DEE2E6;
+    background-color: #DEE2E6;
+    border: none;
+    width: 1px;
+}
+
+QLabel#metric_title_unified {
+    font-size: 10px;
+    font-weight: 700;
+    color: #ADB5BD;
+    letter-spacing: 0.5px;
+    background-color: transparent;
+}
+
+QLabel#metric_value_total {
+    font-size: 16px;
+    font-weight: bold;
+    color: #198754;
+    background-color: transparent;
+}
+
+QLabel#metric_value_avg {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fd7e14;
+    background-color: transparent;
+}
+
+QLabel#metric_value_max {
+    font-size: 16px;
+    font-weight: bold;
+    color: #dc3545;
+    background-color: transparent;
+}
+
+QLabel#metric_value_min {
+    font-size: 16px;
+    font-weight: bold;
+    color: #0dcaf0;
+    background-color: transparent;
+}
+
+QLabel#title_hero {
+    font-size: 30px;
+    font-weight: 800;
+    color: #1A1D21;
+    background-color: transparent;
+}
+
+QLabel#description {
+    font-size: 15px;
+    color: #64748B;
+    background-color: transparent;
+}
+
+QLabel#section_title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1E293B;
+    background-color: transparent;
+}
+
+QLabel#help_text {
+    font-size: 14px;
+    color: #64748B;
+    background-color: transparent;
+}
+
+QLabel#icon_large {
+    font-size: 18px;
+    background-color: transparent;
+}
+
+QLabel#icon_medium {
+    font-size: 20px;
+    background-color: transparent;
+}
+
+QLabel#pid_label {
+    color: #757575;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QLabel#date_label {
+    color: #9E9E9E;
+    font-size: 10px;
+}
+
+QTreeWidget#hierarchy_tree {
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    background-color: white;
+    alternate-background-color: #FAFAFA;
+    selection-background-color: #E3F2FD;
+    selection-color: #1565C0;
+    outline: none;
+    font-size: 13px;
+}
+
+QTreeWidget#hierarchy_tree::item {
+    padding: 8px;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+QTreeWidget#hierarchy_tree::item:hover {
+    background-color: #F5F5F5;
+}
+
+QTreeWidget#hierarchy_tree::item:selected {
+    background-color: #E3F2FD;
+    color: #1565C0;
+}
+
+QRadioButton#filter_radio {
+    font-size: 13px;
+    color: #424242;
+}
+
+QLineEdit#search_input {
+    padding: 10px 15px;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    background-color: #F9F9F9;
+    font-size: 13px;
+    color: #424242;
+}
+
+QLineEdit#search_input:focus {
+    border: 1px solid #1976D2;
+    background-color: white;
+}
+
+QScrollArea#transparent_scroll {
+    border: none;
+    background-color: transparent;
+}
+
+/* Recent Section Title */
+QLabel#recent_section_title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 0px;
+}
+
+QLabel#recent_section_subtitle {
+    font-size: 13px;
+    font-weight: 400;
+    color: #94A3B8;
+    margin-bottom: 4px;
+}
+
+/* Recent Folders Empty State */
+QWidget#recent_empty_state {
+    background-color: #F8FAFC;
+    border: 2px dashed #CBD5E1;
+    border-radius: 12px;
+}
+
+QLabel#empty_state_icon {
+    font-size: 40px;
+    color: #94A3B8;
+    background: transparent;
+    border: none;
+}
+
+QLabel#empty_state_title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: none;
+}
+
+QLabel#empty_state_desc {
+    font-size: 13px;
+    font-weight: 400;
+    color: #94A3B8;
+    background: transparent;
+    border: none;
+    line-height: 1.5;
+}
+
+QTreeWidget#hierarchy_tree {
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::item {
+    padding: 0px;
+    border: none;
+    margin: 2px 0px;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::item:selected {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::item:hover {
+    background-color: transparent;
+}
+
+QTreeWidget#hierarchy_tree::item:focus {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+QTreeWidget#hierarchy_tree::branch:has-children:!has-siblings:closed,
+QTreeWidget#hierarchy_tree::branch:closed:has-children:has-siblings {
+    background: transparent;
+    border: none;
+    width: 0px;
+}
+
+QTreeWidget#hierarchy_tree::branch:open:has-children:!has-siblings,
+QTreeWidget#hierarchy_tree::branch:open:has-children:has-siblings {
+    background: transparent;
+    border: none;
+    width: 0px;
+}
+
