@@ -67,14 +67,10 @@ class SidebarWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("sidebar")
-        self.is_expanded = not OSConfig.is_windows()  # Start expanded on non-Windows
+        self.is_expanded = False  # Start collapsed on all platforms
         
-        if OSConfig.is_windows():
-            self.setMinimumWidth(self.SIDEBAR_WIDTH_COLLAPSED)
-            self.setMaximumWidth(self.SIDEBAR_WIDTH_COLLAPSED)
-        else:
-            self.setMinimumWidth(self.SIDEBAR_WIDTH_OTHER)
-            self.setMaximumWidth(self.SIDEBAR_WIDTH_OTHER)
+        self.setMinimumWidth(self.SIDEBAR_WIDTH_COLLAPSED)
+        self.setMaximumWidth(self.SIDEBAR_WIDTH_COLLAPSED)
             
         self.setup_ui()
 
@@ -87,7 +83,9 @@ class SidebarWidget(QWidget):
         self.header_widget = QWidget()
         self.header_widget.setObjectName("sidebar_header")
         self.header_layout = QHBoxLayout(self.header_widget)
-        self.header_layout.setContentsMargins(10, 10, 10, 6)
+        # Right margin: 17 centers the hamburger button in collapsed state (70 - 36) / 2
+        collapsed_right_margin = (self.SIDEBAR_WIDTH_COLLAPSED - 36) // 2
+        self.header_layout.setContentsMargins(10, 10, collapsed_right_margin, 6)
         self.header_layout.setSpacing(0)
         
         self.logo_label = QLabel()
@@ -124,7 +122,7 @@ class SidebarWidget(QWidget):
         self.nav_group = QButtonGroup(self)
         self.nav_group.setExclusive(True)
         
-        show_text = self.is_expanded and not OSConfig.is_windows()
+        show_text = self.is_expanded
         
         self.btn_home = self.create_nav_button("Home" if show_text else "", "ui/img/home.png", 0)
         self.btn_home.setChecked(True)
@@ -137,6 +135,12 @@ class SidebarWidget(QWidget):
         self.btn_calltrees = self.create_nav_button("App CallTree" if show_text else "", "ui/img/calltrees.png", 2)
         self.btn_calltrees.setEnabled(False)
         nav_layout.addWidget(self.btn_calltrees)
+        
+        # Set initial collapsed icon size and property
+        if not self.is_expanded:
+            for btn in (self.btn_home, self.btn_analyses, self.btn_calltrees):
+                btn.setIconSize(QSize(24, 24))
+                btn.setProperty("collapsed", True)
         
         layout.addWidget(nav_container)
         layout.addStretch()
@@ -158,19 +162,28 @@ class SidebarWidget(QWidget):
         self.date_label = QLabel("")
         self.date_label.setObjectName("date_label")
         
+        # Compact PID label for collapsed state
+        self.pid_label_compact = QLabel("")
+        self.pid_label_compact.setObjectName("pid_label")
+        self.pid_label_compact.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pid_label_compact.setVisible(False)
+        
         info_layout.addWidget(self.pid_label)
         info_layout.addWidget(self.date_label)
+        info_layout.addWidget(self.pid_label_compact)
         footer_layout.addWidget(info_container)
         
         layout.addWidget(self.footer_widget)
         # Footer always visible for theme button
         self.footer_widget.setVisible(True)
         
-        # Set initial logo state
-        if not self.is_expanded:
-            self.logo_label.setMaximumWidth(0)
-        else:
-            self.logo_label.setMaximumWidth(self._logo_natural_width)
+        # Set initial logo state (start collapsed)
+        self.logo_label.setMaximumWidth(0)
+        
+        # Set initial footer visibility (collapsed = compact PID only)
+        self.pid_label.setVisible(False)
+        self.date_label.setVisible(False)
+        self.pid_label_compact.setVisible(False)
 
     def update_pid(self, pid_full):
         """Update the sidebar with PID and formatted date."""
@@ -180,6 +193,7 @@ class SidebarWidget(QWidget):
             pid_id = parts[0]
             
             self.pid_label.setText(f"PID: {pid_id}")
+            self.pid_label_compact.setText(f"PID\n{pid_id}")
             
             if len(parts) > 1:
                 import datetime
@@ -201,7 +215,13 @@ class SidebarWidget(QWidget):
                  
         except Exception:
             self.pid_label.setText(f"PID: {pid_full}")
+            self.pid_label_compact.setText(f"PID\n{pid_full}")
             self.date_label.setText("")
+        
+        # Show the appropriate label based on current sidebar state
+        self.pid_label.setVisible(self.is_expanded)
+        self.date_label.setVisible(self.is_expanded)
+        self.pid_label_compact.setVisible(not self.is_expanded)
 
     def toggle_sidebar(self):
         """Toggle sidebar expansion/collapse."""
@@ -245,6 +265,7 @@ class SidebarWidget(QWidget):
         # Update footer visibility
         self.pid_label.setVisible(show_text)
         self.date_label.setVisible(show_text)
+        self.pid_label_compact.setVisible(not show_text)
     
     def _animate_sidebar(self, new_width, target_logo_width):
         """Animate sidebar width and logo width in parallel for a smooth transition."""

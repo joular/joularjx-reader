@@ -115,7 +115,7 @@ class CallTreeCardInterface(QWidget):
         
         search_filter_layout.addSpacing(20)
         
-        self.collapse_btn = QPushButton("Collapse All")
+        self.collapse_btn = QPushButton("Expand All")
         self.collapse_btn.clicked.connect(self.collapse_all_nodes)
         self.collapse_btn.setObjectName("collapse_btn")
         search_filter_layout.addWidget(self.collapse_btn)
@@ -343,6 +343,9 @@ class CallTreeCardInterface(QWidget):
         self.item_metrics.clear()
         self.expansion_state.clear()
         
+        # Reset button since tree starts collapsed
+        self.collapse_btn.setText("Expand All")
+        
         # Determine which data to show
         if self.app_radio.isChecked():
             source_trees = self.app_call_trees
@@ -415,20 +418,29 @@ class CallTreeCardInterface(QWidget):
         # Check if it has children
         has_children = len(node.children) > 0
         
-        # Only expand parent nodes; leaves should never be marked expanded
+        # Start collapsed by default
         if has_children:
-            item.setExpanded(True)
+            item.setExpanded(False)
         
         # Calculate percentage
         percentage = node.get_percentage(total_consumption)
         
-        # Calculate names
-        short_name = self.extract_method_name(node.name)
+        # Calculate names - for collapsed nodes with children, build the full chain path
+        if has_children:
+            parts = [self.extract_method_name(node.name)]
+            curr = node
+            while len(curr.children) == 1:
+                child = list(curr.children.values())[0]
+                parts.append(self.extract_method_name(child.name))
+                curr = child
+            short_name = ".".join(parts)
+        else:
+            short_name = self.extract_method_name(node.name)
 
         extra_info = "" 
         
-        # Leaf nodes always show metrics; parent nodes start expanded so metrics hidden
-        show_metrics = not has_children
+        # All nodes show metrics initially (tree starts collapsed)
+        show_metrics = True
 
         # Create the card widget
         card_widget, chevron_label, name_label, metrics_container = self.create_method_card(
@@ -440,7 +452,7 @@ class CallTreeCardInterface(QWidget):
             has_children,
             depth,
             show_metrics=show_metrics,
-            is_expanded=True
+             is_expanded=False
         )
         
         # Store item data
@@ -527,7 +539,7 @@ class CallTreeCardInterface(QWidget):
                 background-color: {bg_color};
                 border: 1px solid #E0E0E0;
                 border-radius: 4px;
-                padding65px 12px;
+                padding: 5px 12px;
             }}
             #node_card:hover {{
                 background-color: #F5F7FA;
@@ -712,6 +724,11 @@ class CallTreeCardInterface(QWidget):
         if id(item) in self.item_metrics:
             self.item_metrics[id(item)].setVisible(False)
 
+        # Force layout recalculation for the item widget
+        widget = self.tree.itemWidget(item, 0)
+        if widget:
+            widget.updateGeometry()
+
         if id(item) in self.item_name_labels:
             data = item.data(0, Qt.ItemDataRole.UserRole)
             if data and 'name' in data:
@@ -730,6 +747,11 @@ class CallTreeCardInterface(QWidget):
         # Show metrics on collapsed parent nodes
         if id(item) in self.item_metrics:
             self.item_metrics[id(item)].setVisible(True)
+
+        # Force layout recalculation for the item widget
+        widget = self.tree.itemWidget(item, 0)
+        if widget:
+            widget.updateGeometry()
 
         if id(item) in self.item_name_labels:
             data = item.data(0, Qt.ItemDataRole.UserRole)

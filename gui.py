@@ -603,8 +603,9 @@ class MainWindow(BaseWindowClass):
             date_str = format_pid_date_short(pid) or ""
 
             if hasattr(self, 'pid_widget'):
-                pid_text = f"PID: {self.current_pid}"
-                full_tooltip = f"PID: {self.current_pid}\nDate: {date_str}\nPath: {pid_path}"
+                pid_number = self.current_pid.split('-')[0] if '-' in self.current_pid else self.current_pid
+                pid_text = f"PID: {pid_number}"
+                full_tooltip = f"PID: {pid_number}\nDate: {date_str}\nPath: {pid_path}"
                 self.pid_widget.update_data(pid_text, date_str, full_tooltip)
                 self.pid_widget.setVisible(True)
             
