@@ -1,3 +1,4 @@
+# Table column widths (pixels)
 TABLE_CHECKBOX_WIDTH = 20
 TABLE_COLOR_WIDTH = 16
 TABLE_METHOD_WIDTH = 250
@@ -5,19 +6,24 @@ TABLE_CONSUMPTION_WIDTH = 140
 TABLE_AVERAGE_WIDTH = 140
 TABLE_PERCENTAGE_WIDTH = 105
 
+# Sidebar widths — compact on Windows (icon-only), full on other platforms
 SIDEBAR_WIDTH_WINDOWS = 70
 SIDEBAR_WIDTH_OTHER = 200
 
+# Dashboard action card / browse button dimensions
 ACTION_CARD_ICON_SIZE = 120
 BROWSE_BUTTON_WIDTH = 260
 BROWSE_BUTTON_HEIGHT = 40
 
+# Logo display size per platform
 LOGO_SIZE_WINDOWS = (50, 30)
 LOGO_SIZE_OTHER = (100, 60)
 
+# Call tree / hierarchy widget
 TREE_MIN_HEIGHT = 400
-HIERARCHY_INDENT = 20
-CHEVRON_WIDTH = 15
+HIERARCHY_INDENT = 20   # Left indent per depth level (px)
+CHEVRON_WIDTH = 15       # Width reserved for the expand/collapse chevron
 
+# Node card size (fixed height keeps the tree rows uniform)
 NODE_CARD_MIN_HEIGHT = 40
 NODE_CARD_MAX_HEIGHT = 40

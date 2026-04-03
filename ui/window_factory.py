@@ -10,11 +10,16 @@ def apply_platform_style(app):
     from utils.os_config import OSConfig
     
     if OSConfig.is_macos():
+        # Fusion is used instead of the native macOS style so that QSS
+        # overrides are applied consistently across the app.
         app.setStyle("Fusion")
         print("[WindowFactory] Using Fusion style (macOS Fluent)")
     elif OSConfig.is_windows():
+        # The fluent-widgets library handles styling on Windows; no extra
+        # QApplication style override is needed.
         pass
     else:
         app.setStyle("Fusion")
         print("[WindowFactory] Using Fusion style")
+
 

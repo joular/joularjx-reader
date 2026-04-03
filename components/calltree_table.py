@@ -29,7 +29,7 @@ class CallTreeTable(QTableWidget):
         self.setColumnWidth(2, 100)
         
         # Configure headers style
-        header.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft)
+        header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
         
         # Set minimum column widths
@@ -63,7 +63,7 @@ class CallTreeTable(QTableWidget):
                 name = name[:37] + "[..]"
             name_item = QTableWidgetItem(f"⚡ {name}")
             name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            name_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            name_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             name_item.setBackground(pg.mkColor(bg_color))
             name_item.setFont(QFont("Arial", 12))
             name_item.setToolTip(calltree.name)
@@ -73,7 +73,7 @@ class CallTreeTable(QTableWidget):
             consumption_text = f"{calltree.consumption:.4f} J"
             consumption_item = QTableWidgetItem(consumption_text)
             consumption_item.setFlags(consumption_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            consumption_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            consumption_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             consumption_item.setBackground(pg.mkColor(bg_color))
             consumption_item.setFont(QFont("Arial", 12))
             self.setItem(row, 1, consumption_item)
@@ -82,7 +82,7 @@ class CallTreeTable(QTableWidget):
             percentage_text = f"{calltree.percentage:.2f}%"
             percentage_item = QTableWidgetItem(percentage_text)
             percentage_item.setFlags(percentage_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            percentage_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             percentage_item.setBackground(pg.mkColor(bg_color))
             percentage_item.setFont(QFont("Arial", 12))
             self.setItem(row, 2, percentage_item)

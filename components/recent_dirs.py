@@ -21,10 +21,41 @@ class RecentDirectories:
                 item = recent_layout.takeAt(0)
                 if item.widget():
                     item.widget().deleteLater()
-            # Add cards
-            for directory in self.dir_history.get_directories():
-                card = self.create_recent_dir_card(directory)
-                recent_layout.addWidget(card)
+            
+            directories = self.dir_history.get_directories()
+            
+            if not directories:
+                # Empty state placeholder
+                empty_widget = QWidget()
+                empty_widget.setObjectName("recent_empty_state")
+                empty_layout = QVBoxLayout(empty_widget)
+                empty_layout.setContentsMargins(20, 40, 20, 40)
+                empty_layout.setSpacing(12)
+                empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                
+                empty_icon = QLabel("📂")
+                empty_icon.setObjectName("empty_state_icon")
+                empty_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                empty_layout.addWidget(empty_icon)
+                
+                empty_title = QLabel("No recent folders")
+                empty_title.setObjectName("empty_state_title")
+                empty_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                empty_layout.addWidget(empty_title)
+                
+                empty_desc = QLabel("Folders you analyze will appear here\nfor quick access")
+                empty_desc.setObjectName("empty_state_desc")
+                empty_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                empty_desc.setWordWrap(True)
+                empty_layout.addWidget(empty_desc)
+                
+                recent_layout.addWidget(empty_widget)
+            else:
+                # Add cards
+                for directory in directories:
+                    card = self.create_recent_dir_card(directory)
+                    recent_layout.addWidget(card)
+            
             recent_layout.addStretch()
         except Exception as e:
             ErrorHandler.show_error(
